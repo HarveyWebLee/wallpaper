@@ -1,0 +1,62 @@
+{
+  "name": "wallpaper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop screensaver project with Electron + NestJS + React",
+  "packageManager": "pnpm@10.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HarveyWebLee/wallpaper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HarveyWebLee/wallpaper/issues"
+  },
+  "homepage": "https://github.com/HarveyWebLee/wallpaper#readme",
+  "scripts": {
+    "dev": "concurrently -n WEB,SERVER,DESKTOP -c cyan,green,magenta \"pnpm --filter @wallpaper/web dev\" \"pnpm --filter @wallpaper/server dev\" \"pnpm --filter @wallpaper/desktop dev\"",
+    "build": "pnpm --filter @wallpaper/web build && pnpm --filter @wallpaper/server build && pnpm --filter @wallpaper/desktop build",
+    "package:desktop": "pnpm run build && pnpm --filter @wallpaper/desktop package",
+    "lint": "pnpm -r --if-present lint",
+    "lint:fix": "pnpm -r --if-present lint:fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "release": "semantic-release",
+    "release:dry-run": "semantic-release --dry-run",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.23.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.6",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "@types/node": "^22.13.14",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.23.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.5.3",
+    "semantic-release": "^24.2.9",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.28.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "eslint --fix"
+    ],
+    "*.{json,md,css,less,scss,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

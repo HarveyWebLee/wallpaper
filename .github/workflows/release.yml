@@ -1,0 +1,52 @@
+# 在推送到 main 且存在可发布提交（feat/fix/perf 等）时：
+# 自动 bump 版本、同步各包 package.json、写入 CHANGELOG、构建 DMG、创建 GitHub Release 并上传产物。
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # 桌面 DMG 需在 macOS 上构建；与本地 pnpm run package:desktop 行为一致
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Quality gate
+        run: pnpm run lint && pnpm run typecheck && pnpm run format:check
+
+      - name: Semantic release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 避免 release 提交触发 husky 等与 CI 无关的钩子
+          HUSKY: "0"
+        run: pnpm exec semantic-release

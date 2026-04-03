@@ -1,0 +1,492 @@
+/*
+ * 日期时间选择：与大屏主画布（main-card）统一的深色玻璃拟态 + 圆角
+ * 粉/薄荷选中态保留，便于在暗底上仍可一眼辨认
+ * 依赖 html 中可选加载 Nunito（无网络时回退系统字体）
+ */
+
+/* 与 styles.less 中主面板色系对齐的局部变量（避免弹层挂 body 时取不到 .app-shell） */
+@toon-popup-bg0: rgba(15, 23, 42, 0.94);
+@toon-popup-bg1: rgba(15, 23, 42, 0.82);
+@toon-popup-bg2: rgba(30, 41, 59, 0.72);
+@toon-edge: rgba(56, 189, 248, 0.22);
+@toon-edge-strong: rgba(45, 212, 191, 0.42);
+@toon-text: rgba(226, 232, 240, 0.96);
+@toon-text-dim: rgba(148, 163, 184, 0.92);
+@toon-text-muted: rgba(100, 116, 139, 0.88);
+
+/* ---------- 输入框（主界面上的触发器） ---------- */
+.dash-block--birth {
+  width: 100%;
+}
+
+.dash-block--birth__hint {
+  display: block;
+  font-size: clamp(12px, 1.2vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(203, 213, 225, 0.88) !important;
+}
+
+.dash-datepicker--toon.ant-picker {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 14px;
+  font-family: "Nunito", "PingFang SC", "Microsoft YaHei", ui-rounded, system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: @toon-text !important;
+  /* 与主 Card 同向渐变，略提高不透明度以免背后光斑干扰读数 */
+  background: linear-gradient(
+    145deg,
+    @toon-popup-bg0 0%,
+    @toon-popup-bg1 48%,
+    @toon-popup-bg2 100%
+  ) !important;
+  border: 1px solid @toon-edge !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.08) inset,
+    0 8px 28px rgba(0, 0, 0, 0.38) !important;
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+
+  .ant-picker-input > input {
+    font-family: inherit;
+    font-weight: 700;
+    color: @toon-text !important;
+    &::placeholder {
+      color: @toon-text-muted !important;
+    }
+  }
+
+  .ant-picker-suffix,
+  .ant-picker-clear {
+    color: @toon-text-dim !important;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(56, 189, 248, 0.38) !important;
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.12) inset,
+      0 10px 32px rgba(0, 0, 0, 0.42),
+      0 0 24px rgba(45, 212, 191, 0.12) !important;
+  }
+
+  &.ant-picker-focused {
+    transform: translateY(0);
+    border-color: @toon-edge-strong !important;
+    box-shadow:
+      0 0 0 1px rgba(45, 212, 191, 0.2) inset,
+      0 0 0 3px rgba(45, 212, 191, 0.22),
+      0 8px 28px rgba(0, 0, 0, 0.38) !important;
+  }
+
+  /* 与 ant outlined 变体对齐为同一套暗色玻璃阴影 */
+  &.ant-picker-outlined {
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.08) inset,
+      0 8px 28px rgba(0, 0, 0, 0.38) !important;
+  }
+}
+
+/* ---------- 下拉面板（挂载在 body，需全局类名；宽度由 main.tsx popupStyle 与输入区同步） ---------- */
+.toon-picker-popup.ant-picker-dropdown {
+  box-sizing: border-box;
+  font-family: "Nunito", "PingFang SC", "Microsoft YaHei", ui-rounded, system-ui, sans-serif;
+
+  /* antd 默认 inline-block，宽 popup 下与子级 intrinsic 宽度脱节 → 改 block 撑满 */
+  .ant-picker-panel-container {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    border-radius: 18px !important;
+    border: 1px solid @toon-edge !important;
+    background: linear-gradient(
+      145deg,
+      @toon-popup-bg0 0%,
+      @toon-popup-bg1 48%,
+      @toon-popup-bg2 100%
+    ) !important;
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.08) inset,
+      0 20px 48px rgba(0, 0, 0, 0.5),
+      0 0 1px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    overflow: hidden;
+  }
+
+  /*
+   * rc-picker Popup：panel-layout 下「无类名 div」包着 PickerPanel + Footer，
+   * 该 div 默认 flex:0 1 auto，只吃内容宽度 → 右侧三分之一空白（截图问题）。
+   */
+  .ant-picker-panel-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    align-items: stretch !important;
+    background: transparent !important;
+  }
+
+  .ant-picker-presets {
+    flex: 0 0 auto !important;
+  }
+
+  .ant-picker-panel-layout > div:last-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+  }
+
+  /* PickerPanel 根节点：与 datetime 同宽 */
+  .ant-picker-panel-layout > div:last-child > .ant-picker-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
+  }
+
+  .ant-picker-datetime-panel {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 左侧日期：与时间区 6:4；date-panel 内无嵌套 .ant-picker-panel */
+  .ant-picker-date-panel {
+    flex: 6 6 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+  }
+
+  .ant-picker-date-panel .ant-picker-body {
+    padding-inline: clamp(6px, 2.5%, 14px) !important;
+  }
+
+  .ant-picker-date-panel .ant-picker-content {
+    width: 100% !important;
+  }
+
+  .ant-picker-date-panel table {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .ant-picker-date-panel .ant-picker-content th {
+    padding: 4px 0 !important;
+  }
+
+  .ant-picker-header {
+    border-bottom: 1px solid rgba(56, 189, 248, 0.12) !important;
+    color: @toon-text-dim !important;
+  }
+
+  /* 年月切换箭头：与暗色面板统一，避免仍用默认灰黑图标 */
+  .ant-picker-header-prev-btn,
+  .ant-picker-header-next-btn,
+  .ant-picker-header-super-prev-btn,
+  .ant-picker-header-super-next-btn {
+    color: @toon-text-dim !important;
+    &:hover {
+      color: @toon-text !important;
+    }
+  }
+
+  .ant-picker-header-view button {
+    font-weight: 800 !important;
+    color: @toon-text !important;
+    border-radius: 12px !important;
+    transition: background 0.12s ease;
+
+    &:hover {
+      background: rgba(56, 189, 248, 0.12) !important;
+    }
+  }
+
+  .ant-picker-content th {
+    font-weight: 800 !important;
+    font-size: 12px !important;
+    color: @toon-text-dim !important;
+  }
+
+  .ant-picker-cell {
+    padding: 4px 0 !important;
+  }
+
+  /*
+   * antd 在 td::before 上画选区条，与自定义圆角格子叠在一起会发糊、发脏；
+   * 卡通样式只保留「内层 pill」，统一关掉选中相关 td 伪元素背景。
+   */
+  .ant-picker-cell-in-view.ant-picker-cell-selected::before,
+  .ant-picker-cell-in-view.ant-picker-cell-range-start::before,
+  .ant-picker-cell-in-view.ant-picker-cell-range-end::before,
+  .ant-picker-cell-in-view.ant-picker-cell-selected.ant-picker-cell-today::before {
+    background: transparent !important;
+    inset-inline-start: 0 !important;
+    inset-inline-end: 0 !important;
+    opacity: 0 !important;
+  }
+
+  /* 非本月日期：压暗，仍以浅灰可见（antd 默认偏浅底深字） */
+  .ant-picker-cell:not(.ant-picker-cell-in-view) .ant-picker-cell-inner {
+    color: rgba(100, 116, 139, 0.42) !important;
+  }
+
+  .ant-picker-cell .ant-picker-cell-inner {
+    position: relative !important;
+    z-index: 2 !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    color: @toon-text !important;
+    min-width: 32px !important;
+    line-height: 32px !important;
+    transition:
+      transform 0.12s ease,
+      background 0.12s ease,
+      box-shadow 0.12s ease;
+  }
+
+  /* 今天（未选）：单层薄荷环，暗底上用半透明填充 */
+  .ant-picker-cell-in-view.ant-picker-cell-today:not(.ant-picker-cell-selected)
+    .ant-picker-cell-inner {
+    border: 2px solid rgba(45, 212, 191, 0.65) !important;
+    background: rgba(45, 212, 191, 0.12) !important;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12) inset !important;
+  }
+
+  .ant-picker-cell-in-view.ant-picker-cell-today:not(.ant-picker-cell-selected)
+    .ant-picker-cell-inner::before {
+    display: none !important;
+    content: none !important;
+    border: none !important;
+  }
+
+  /* 选中：圆润糖块 + 顶部高光 + 轻脚线阴影；不要粗黑描边以免和 table fixed 格子错位 */
+  .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner,
+  .ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner,
+  .ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+    background: linear-gradient(165deg, #ff9eb8 0%, #ff6b9d 38%, #f24e86 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.45) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.08) inset,
+      0 3px 8px rgba(242, 78, 134, 0.35) !important;
+    transform: none !important;
+    font-weight: 800 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  /* 选中且是今天：只保留选中糖块，去掉 today 环 */
+  .ant-picker-cell-in-view.ant-picker-cell-today.ant-picker-cell-selected .ant-picker-cell-inner {
+    border: none !important;
+    background: linear-gradient(165deg, #ff9eb8 0%, #ff6b9d 38%, #f24e86 100%) !important;
+  }
+
+  .ant-picker-cell-in-view.ant-picker-cell-today.ant-picker-cell-selected
+    .ant-picker-cell-inner::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  .ant-picker-cell:hover:not(.ant-picker-cell-disabled):not(.ant-picker-cell-selected)
+    .ant-picker-cell-inner {
+    background: rgba(56, 189, 248, 0.16) !important;
+    transform: scale(1.05);
+  }
+
+  .ant-picker-cell-in-view.ant-picker-cell-selected:hover .ant-picker-cell-inner,
+  .ant-picker-cell-in-view.ant-picker-cell-range-start:hover .ant-picker-cell-inner,
+  .ant-picker-cell-in-view.ant-picker-cell-range-end:hover .ant-picker-cell-inner {
+    transform: none !important;
+    filter: brightness(1.06);
+  }
+
+  .ant-picker-cell-disabled .ant-picker-cell-inner {
+    color: rgba(148, 163, 184, 0.28) !important;
+    background: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* 右侧时间：与日期区 4:6；覆盖 ant 固定列宽，时/分/秒三列在时间区内均分 */
+  .ant-picker-time-panel {
+    flex: 4 4 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-inline-start: 1px solid rgba(56, 189, 248, 0.14) !important;
+    /* 略深于主容器，分出时间列区域且不亮成「白纸」 */
+    background: rgba(15, 23, 42, 0.55) !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 时间区主体（有的版本在 header 下，不强制 > 直接子级） */
+  .ant-picker-time-panel .ant-picker-content {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: clamp(200px, 28vh, 300px) !important;
+    height: auto !important;
+    max-height: min(340px, 40vh) !important;
+    box-sizing: border-box !important;
+  }
+
+  .ant-picker-time-panel-column {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin-inline: 2px !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(45, 212, 191, 0.45) rgba(15, 23, 42, 0.4);
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.45), rgba(45, 212, 191, 0.55));
+      border-radius: 99px;
+      border: 2px solid rgba(15, 23, 42, 0.8);
+    }
+  }
+
+  .ant-picker-time-panel-cell {
+    margin-inline: 4px !important;
+  }
+
+  .ant-picker-time-panel-cell .ant-picker-time-panel-cell-inner {
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    color: @toon-text !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+    padding-block: 0 !important;
+    padding-inline: 6px !important;
+    padding-inline-start: 6px !important;
+    text-align: center !important;
+  }
+
+  .ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+    background: linear-gradient(
+      145deg,
+      rgba(56, 189, 248, 0.85),
+      rgba(45, 212, 191, 0.9)
+    ) !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(45, 212, 191, 0.55) !important;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+      0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .ant-picker-time-panel-cell:hover .ant-picker-time-panel-cell-inner {
+    background: rgba(56, 189, 248, 0.14) !important;
+  }
+
+  .ant-picker-footer {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-top: 1px solid rgba(56, 189, 248, 0.12) !important;
+    background: rgba(15, 23, 42, 0.72) !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .ant-picker-now-btn,
+  .ant-picker-today-btn {
+    font-weight: 800 !important;
+    color: #f472b6 !important;
+    border-radius: 10px !important;
+    padding: 2px 8px !important;
+
+    &:hover {
+      background: rgba(244, 114, 182, 0.18) !important;
+    }
+  }
+
+  .ant-picker-footer .ant-btn-primary {
+    font-family: inherit !important;
+    font-weight: 800 !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(45, 212, 191, 0.45) !important;
+    background: linear-gradient(180deg, #2dd4bf, #14b8a6) !important;
+    color: #042f2e !important;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+      0 4px 14px rgba(0, 0, 0, 0.35);
+
+    &:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+  }
+
+  /* 月/年下拉（若出现） */
+  .ant-picker-year-btn,
+  .ant-picker-month-btn {
+    border-radius: 10px !important;
+  }
+}
+
+/* ---------- 与选择器配套的目标时刻条：同色描边胶囊感 ---------- */
+.dash-panel--cartoon.dash-panel.retirement-highlight.stat-card {
+  border-radius: 22px !important;
+  border: 3px solid rgba(255, 182, 218, 0.45) !important;
+  background: linear-gradient(
+    125deg,
+    rgba(40, 32, 68, 0.82) 0%,
+    rgba(30, 41, 59, 0.78) 45%,
+    rgba(45, 35, 80, 0.72) 100%
+  ) !important;
+  box-shadow:
+    5px 5px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset !important;
+
+  &::before {
+    width: 6px;
+    border-radius: 0 4px 4px 0;
+    background: linear-gradient(180deg, #ff6b9d, #ffd666, #47d7a8) !important;
+    box-shadow: 0 0 18px rgba(255, 107, 157, 0.35);
+  }
+}
+
+.dash-panel--cartoon .dash-panel__label {
+  color: rgba(254, 215, 226, 0.88) !important;
+  letter-spacing: 0.14em;
+}
+
+.dash-panel--cartoon .dash-panel__value {
+  color: #fff9fb !important;
+  text-shadow: 0 2px 0 rgba(43, 33, 66, 0.35);
+}

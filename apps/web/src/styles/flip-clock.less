@@ -1,0 +1,532 @@
+/* 翻牌：布局与 flip-row / flip-unit（页面级） + ch-flap-*（单格 Clockhub 式 3D） */
+.flip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(12px, 2.2vw, 26px) clamp(14px, 2.4vw, 32px);
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.flip-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 数字格与标签拉开，标签更易扫读 */
+  gap: clamp(8px, 1.2vmin, 14px);
+}
+
+.flip-digit-row {
+  display: flex;
+  gap: clamp(4px, 0.65vmin, 8px);
+  align-items: flex-end;
+}
+
+/*
+ * 单位文案（年/月/日…）：小胶囊 + 与对应列同色相微光，暗底上对比足够
+ * 中文单字不设 uppercase；字距略紧避免「字」支离破碎感
+ */
+.flip-label {
+  min-width: 2.5em;
+  text-align: center;
+  font-size: clamp(14px, 2.05vmin, 22px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: rgba(224, 242, 254, 0.98);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.72) 0%, rgba(30, 41, 59, 0.55) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.38);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 4px 18px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(45, 212, 191, 0.12);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 16px rgba(56, 189, 248, 0.28);
+}
+
+.flip-unit[data-tone="year"] .flip-label {
+  color: #ffe4e8;
+  border-color: rgba(244, 114, 182, 0.55);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(244, 114, 182, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 4px 18px rgba(0, 0, 0, 0.25),
+    0 0 24px rgba(244, 114, 182, 0.18);
+}
+
+.flip-unit[data-tone="month"] .flip-label {
+  color: #f5f0ff;
+  border-color: rgba(167, 139, 250, 0.55);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(167, 139, 250, 0.32);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 4px 18px rgba(0, 0, 0, 0.25),
+    0 0 24px rgba(167, 139, 250, 0.16);
+}
+
+.flip-unit[data-tone="day"] .flip-label {
+  color: #fff7ed;
+  border-color: rgba(251, 191, 36, 0.5);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(251, 191, 36, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 4px 18px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(251, 191, 36, 0.14);
+}
+
+.flip-unit[data-tone="hour"] .flip-label {
+  color: #fffbeb;
+  border-color: rgba(250, 204, 21, 0.48);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 16px rgba(234, 179, 8, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 4px 18px rgba(0, 0, 0, 0.25),
+    0 0 20px rgba(250, 204, 21, 0.12);
+}
+
+.flip-unit[data-tone="minute"] .flip-label {
+  color: #ecfdf5;
+  border-color: rgba(52, 211, 153, 0.5);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(52, 211, 153, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 4px 18px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(52, 211, 153, 0.14);
+}
+
+.flip-unit[data-tone="second"] .flip-label {
+  color: #eff6ff;
+  border-color: rgba(56, 189, 248, 0.52);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 18px rgba(56, 189, 248, 0.3);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 4px 18px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(56, 189, 248, 0.18);
+}
+
+/*
+ * 单格：仅两种玻璃色标 --ch-hi / --ch-lo（同色系、对比柔和）
+ * 上半与正面：hi → lo；下半与背面：lo → hi，接缝同色，整体不花。
+ */
+.ch-flap-cell {
+  /* 默认兜底；全屏时由 .app-shell 注入的 --dash-flip-* 覆盖 */
+  --ch-full: var(--dash-flip-h, 96px);
+  --ch-half: calc(var(--dash-flip-h, 96px) * 0.5);
+  --ch-w: var(--dash-flip-w, 84px);
+  --ch-anim: 0.9s;
+  --ch-hi: rgba(248, 250, 252, 0.76);
+  --ch-lo: rgba(228, 234, 242, 0.74);
+  --ch-glow: 0 10px 36px rgba(100, 116, 139, 0.2);
+  /* 上下半共用同一套玻璃描边与内高光 */
+  --ch-glass-border: rgba(255, 255, 255, 0.48);
+  --ch-glass-inset:
+    inset 0 1px 1px rgba(255, 255, 255, 0.62), inset 0 -1px 0 rgba(255, 255, 255, 0.14);
+  --ch-digit: rgba(30, 41, 59, 0.9);
+  --ch-digit-shadow: 0 1px 0 rgba(255, 255, 255, 0.55), 0 2px 12px rgba(255, 255, 255, 0.25);
+  position: relative;
+  width: var(--ch-w);
+  height: var(--ch-full);
+  perspective: var(--dash-flip-perspective, 300px);
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", ui-monospace, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  border-radius: 12px;
+  isolation: isolate;
+  box-shadow:
+    var(--ch-glow),
+    0 0 0 1px rgba(255, 255, 255, 0.38) inset,
+    0 1px 0 rgba(255, 255, 255, 0.5) inset;
+
+  &[data-tone="year"] {
+    --ch-hi: rgba(255, 236, 240, 0.82);
+    --ch-lo: rgba(253, 206, 218, 0.78);
+    --ch-glow: 0 12px 40px rgba(244, 114, 148, 0.26);
+  }
+  &[data-tone="month"] {
+    --ch-hi: rgba(241, 235, 255, 0.82);
+    --ch-lo: rgba(224, 211, 254, 0.78);
+    --ch-glow: 0 12px 40px rgba(167, 139, 250, 0.22);
+  }
+  &[data-tone="day"] {
+    --ch-hi: rgba(255, 249, 240, 0.88);
+    --ch-lo: rgba(254, 224, 192, 0.8);
+    --ch-glow: 0 12px 40px rgba(251, 191, 36, 0.2);
+  }
+  &[data-tone="hour"] {
+    --ch-hi: rgba(255, 253, 235, 0.88);
+    --ch-lo: rgba(252, 240, 200, 0.82);
+    --ch-glow: 0 12px 40px rgba(234, 179, 8, 0.18);
+  }
+  &[data-tone="minute"] {
+    --ch-hi: rgba(240, 253, 248, 0.86);
+    --ch-lo: rgba(204, 251, 232, 0.82);
+    --ch-glow: 0 12px 40px rgba(52, 211, 153, 0.22);
+  }
+  &[data-tone="second"] {
+    --ch-hi: rgba(241, 248, 255, 0.88);
+    --ch-lo: rgba(214, 236, 255, 0.82);
+    --ch-glow: 0 12px 40px rgba(56, 189, 248, 0.24);
+  }
+}
+
+.ch-flap-cell-plain {
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 232, 240, 0.32) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  color: rgba(51, 65, 85, 0.72);
+  font-weight: 700;
+  font-size: calc(var(--ch-full) * 0.31);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.5),
+    0 6px 24px rgba(15, 23, 42, 0.08);
+}
+
+.ch-flap-digit,
+.ch-flap-lower-text,
+.ch-flap-card-inner {
+  font-size: calc(var(--ch-full) * 0.58);
+  font-weight: 700;
+  color: var(--ch-digit, rgba(30, 41, 59, 0.9));
+  text-shadow: var(--ch-digit-shadow, 0 1px 0 rgba(255, 255, 255, 0.55));
+}
+
+.ch-flap-digit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--ch-full);
+  line-height: var(--ch-full);
+  text-align: center;
+}
+
+.ch-flap-lower-text,
+.ch-flap-card-inner {
+  line-height: 1;
+}
+
+.ch-flap-upper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ch-flap-upper--idle {
+  height: 50%;
+  z-index: 4;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--ch-glass-border, rgba(255, 255, 255, 0.48));
+  border-bottom: none;
+  background: linear-gradient(180deg, var(--ch-hi), var(--ch-lo));
+  backdrop-filter: blur(12px) saturate(1.22);
+  -webkit-backdrop-filter: blur(12px) saturate(1.22);
+  box-shadow: var(--ch-glass-inset);
+
+  .ch-flap-front-wrap {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+.ch-flap-upper--flip {
+  height: 100%;
+  z-index: 6;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  pointer-events: none;
+  animation: ch-flap-flip-down var(--ch-anim) ease-in-out forwards;
+
+  .ch-flap-back-wrap,
+  .ch-flap-front-wrap {
+    height: 50%;
+  }
+}
+
+.ch-flap-upper--past-mid .ch-flap-front-wrap {
+  visibility: hidden;
+}
+
+.ch-flap-back-wrap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-sizing: border-box;
+  transform: rotateX(180deg);
+}
+
+.ch-flap-front-wrap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-sizing: border-box;
+}
+
+.ch-flap-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 200%;
+  box-sizing: border-box;
+}
+
+.ch-flap-card-inner--front {
+  background: linear-gradient(180deg, var(--ch-hi), var(--ch-lo));
+  backdrop-filter: blur(12px) saturate(1.22);
+  -webkit-backdrop-filter: blur(12px) saturate(1.22);
+  border: 1px solid var(--ch-glass-border, rgba(255, 255, 255, 0.48));
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  box-shadow: var(--ch-glass-inset);
+}
+
+.ch-flap-card-inner--back {
+  /* 与下半部同一套色与质感，仅方向对调 */
+  background: linear-gradient(180deg, var(--ch-lo), var(--ch-hi));
+  backdrop-filter: blur(12px) saturate(1.22);
+  -webkit-backdrop-filter: blur(12px) saturate(1.22);
+  border: 1px solid var(--ch-glass-border, rgba(255, 255, 255, 0.48));
+  border-radius: 12px;
+  box-shadow: var(--ch-glass-inset);
+  transform: translateY(-50%);
+}
+
+.ch-flap-shadow-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.ch-flap-shadow-middle {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  z-index: 22;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(0, 0, 0, 0.12) 40%,
+    rgba(0, 0, 0, 0.6) 50%,
+    rgba(0, 0, 0, 0.12) 60%,
+    transparent
+  );
+  animation: ch-flap-shadow-middle var(--ch-anim) ease-in-out forwards;
+}
+
+.ch-flap-shadow-dark {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  z-index: 23;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(0, 0, 0, 0.35) 45%,
+    rgba(0, 0, 0, 0.65) 50%,
+    rgba(0, 0, 0, 0.35) 55%,
+    transparent
+  );
+  animation: ch-flap-shadow-dark var(--ch-anim) ease-in-out forwards;
+}
+
+.ch-flap-shadow-bottom {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1) 30%, transparent);
+  animation: ch-flap-shadow-bottom var(--ch-anim) ease-in-out forwards;
+}
+
+.ch-flap-upper-backdrop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 50%;
+  z-index: 2;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--ch-glass-border, rgba(255, 255, 255, 0.48));
+  border-bottom: none;
+  background: linear-gradient(180deg, var(--ch-hi), var(--ch-lo));
+  backdrop-filter: blur(12px) saturate(1.22);
+  -webkit-backdrop-filter: blur(12px) saturate(1.22);
+  box-shadow: var(--ch-glass-inset);
+}
+
+/* 中线铰缝：略提亮、减厚，避免像原 3px 深色条那样抢眼（仍略压住上下分色） */
+.ch-flap-hinge {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  margin-top: -0.5px;
+  height: 1px;
+  z-index: 30;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 20%,
+    rgba(148, 163, 184, 0.35) 50%,
+    rgba(255, 255, 255, 0.35) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.ch-flap-lower {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50%;
+  z-index: 3;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 0 0 12px 12px;
+  border: 1px solid var(--ch-glass-border, rgba(255, 255, 255, 0.48));
+  border-top: none;
+  background: linear-gradient(180deg, var(--ch-lo), var(--ch-hi));
+  backdrop-filter: blur(12px) saturate(1.22);
+  -webkit-backdrop-filter: blur(12px) saturate(1.22);
+  box-shadow: var(--ch-glass-inset);
+}
+
+.ch-flap-lower-inner {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 200%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+@keyframes ch-flap-flip-down {
+  from {
+    transform: rotateX(0deg);
+  }
+  to {
+    transform: rotateX(-180deg);
+  }
+}
+
+@keyframes ch-flap-shadow-middle {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.15;
+  }
+  35% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  65% {
+    opacity: 0.4;
+  }
+  85% {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes ch-flap-shadow-dark {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  60% {
+    opacity: 0.5;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes ch-flap-shadow-bottom {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.1;
+  }
+  40% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  60% {
+    opacity: 0.2;
+  }
+  80% {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 0;
+  }
+}

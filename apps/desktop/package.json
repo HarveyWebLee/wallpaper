@@ -1,0 +1,51 @@
+{
+  "name": "@wallpaper/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wallpaper 退休倒计时大屏（Electron 桌面壳）",
+  "author": "Wallpaper",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "concurrently -n MAIN,WAIT,APP -c blue,yellow,magenta \"pnpm run dev:main\" \"pnpm run wait:web\" \"pnpm run dev:electron\"",
+    "dev:main": "tsc -p tsconfig.json --watch",
+    "wait:web": "wait-on tcp:127.0.0.1:5173 tcp:127.0.0.1:3000",
+    "dev:electron": "cross-env ELECTRON_DISABLE_SECURITY_WARNINGS=true NODE_ENV=development electron .",
+    "build": "tsc -p tsconfig.json",
+    "package": "electron-builder",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "build": {
+    "appId": "com.wallpaper.screensaver",
+    "productName": "WallpaperScreensaver",
+    "npmRebuild": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "../web/dist/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
+  },
+  "dependencies": {
+    "electron-is-dev": "^3.0.1"
+  },
+  "devDependencies": {
+    "electron": "^35.7.5",
+    "electron-builder": "^25.1.8",
+    "wait-on": "^8.0.3"
+  }
+}

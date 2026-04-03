@@ -1,0 +1,6 @@
+node_modules
+apps/**/dist
+apps/desktop/release
+package-lock.json
+# semantic-release 维护，避免与 Prettier 格式检查的 Markdown 规则拉扯
+CHANGELOG.md

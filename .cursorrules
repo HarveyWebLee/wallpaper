@@ -1,0 +1,30 @@
+# Wallpaper 项目 AI 协作规则
+
+## 1. Git 提交信息规范
+
+- 强制遵循 Angular Commit Message：
+  - `type(scope): subject`
+- `type` 允许：`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`
+- `subject` 使用中文，简明说明改动目的。
+- 推荐在正文中补充：
+  - 变更动机
+  - 关键实现点
+  - 潜在影响与兼容性
+
+## 2. 提交前质量门禁
+
+- 在 commit 前必须保证：
+  - `pnpm run lint` 通过
+  - `pnpm run format:check` 通过
+  - `pnpm run typecheck` 通过
+- 若失败，优先执行：
+  - `pnpm run lint:fix`
+  - `pnpm run format`
+
+## 3. 工程结构要求
+
+- 仅在对应子项目目录中开发：
+  - `apps/web`：前端
+  - `apps/server`：后端
+  - `apps/desktop`：桌面端
+- 文档放在 `docs`，并在功能变更时同步更新。
