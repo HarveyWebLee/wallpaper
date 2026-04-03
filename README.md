@@ -60,6 +60,35 @@ pnpm run package:desktop
 
 **长期方案**：使用 **Apple Developer Program** 做 **Developer ID Application** 签名 + **Notarization（公证）**，并在 `electron-builder` 中配置证书与公证（见 [运维部署文档](./docs/deployment.md) 第 7 节）。
 
+## 调试打包版桌面端（白屏、资源未加载等）
+
+1. **从终端启动**（才能把日志打在你看的见的终端里），并打开与开发环境类似的 **Chromium DevTools**：
+
+   ```bash
+   WALLPAPER_DEVTOOLS=1 "/Applications/WallpaperScreensaver.app/Contents/MacOS/WallpaperScreensaver"
+   ```
+
+   - **Console / Network** 里可看 JS 报错、资源是否 404（`file://` 下尤其要看路径）。
+   - 终端里会出现主进程打印的 `index.html` / `preload` 路径及 **是否存在**（`exists: true/false`），以及可选的 `[renderer]` 控制台转发。
+
+2. **未打包、仅本地构建**（用 `file://` 打开 `apps/web/dist`，行为接近安装包）：
+
+   ```bash
+   pnpm run build
+   cd apps/desktop
+   NODE_ENV=production WALLPAPER_DEVTOOLS=1 pnpm exec electron .
+   ```
+
+   `electron-is-dev` 在未打包时若不设 `NODE_ENV=production` 会仍走开发服务器地址；上面命令强制走生产加载逻辑。
+
+3. **Chromium 底层日志**（可选）：
+
+   ```bash
+   WALLPAPER_DEVTOOLS=1 "/Applications/WallpaperScreensaver.app/Contents/MacOS/WallpaperScreensaver" --enable-logging
+   ```
+
+可执行文件名须与 `.app` 内 `Contents/MacOS/` 下一致；若改过 `productName`，请替换路径。
+
 ## 自动发版（main 分支）
 
 推送到 GitHub **`main`** 且存在可发布提交（例如 `feat:`、`fix:`、`perf:`）时，CI 会运行 **semantic-release**：统一提升各包 `version`、更新 `CHANGELOG.md`、构建 DMG 并创建 [GitHub Release](https://github.com/HarveyWebLee/wallpaper/releases)。  
