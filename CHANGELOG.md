@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/HarveyWebLee/wallpaper/compare/v1.0.2...v1.0.3) (2026-04-03)
+
+
+### Bug Fixes
+
+* **desktop:** 修复 Electron 生产环境下 index.html 路径，增加前端资源打包配置 ([b55adf3](https://github.com/HarveyWebLee/wallpaper/commit/b55adf3d7258fc4971a922e9891102882d751735))
+
 ## [1.0.2](https://github.com/HarveyWebLee/wallpaper/compare/v1.0.1...v1.0.2) (2026-04-03)
 
 
