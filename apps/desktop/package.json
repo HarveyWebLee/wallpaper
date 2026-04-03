@@ -4,6 +4,10 @@
   "private": true,
   "description": "Wallpaper 退休倒计时大屏（Electron 桌面壳）",
   "author": "Wallpaper",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HarveyWebLee/wallpaper.git"
+  },
   "main": "dist/main.js",
   "scripts": {
     "dev": "concurrently -n MAIN,WAIT,APP -c blue,yellow,magenta \"pnpm run dev:main\" \"pnpm run wait:web\" \"pnpm run dev:electron\"",
@@ -20,6 +24,7 @@
   "build": {
     "appId": "com.wallpaper.screensaver",
     "productName": "WallpaperScreensaver",
+    "publish": null,
     "npmRebuild": false,
     "directories": {
       "output": "release"
