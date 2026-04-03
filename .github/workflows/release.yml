@@ -20,23 +20,21 @@ jobs:
   release:
     # 桌面 DMG 需在 macOS 上构建；与本地 pnpm run package:desktop 行为一致
     runs-on: macos-latest
-    # 官方弃用 Action 内嵌 Node 20：启用 Node 24 运行 JS Action，消除 deprecation 提示
-    # @see https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
+      # v5+ 以 Node 24 为 Action 运行时，避免仍标为 node20 时的弃用告警
+      # @see https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: true
 
       # 不在这里写 version：与根 package.json 的 packageManager（pnpm@10.0.0）二选一会触发 ERR_PNPM_BAD_PM_VERSION
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
