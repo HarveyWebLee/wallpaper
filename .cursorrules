@@ -1,30 +1,49 @@
 # Wallpaper 项目 AI 协作规则
 
-## 1. Git 提交信息规范
+面向 Monorepo（Electron + NestJS + React）协作：改动集中、可审查，提交与发版可追溯。
 
-- 强制遵循 Angular Commit Message：
-  - `type(scope): subject`
-- `type` 允许：`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`
-- `subject` 使用中文，简明说明改动目的。
-- 推荐在正文中补充：
-  - 变更动机
-  - 关键实现点
-  - 潜在影响与兼容性
+## 1. Git 提交信息（Angular + 中文）
+
+- 格式：`type(scope): subject`（`scope` 建议：`web` | `server` | `desktop` | `ci` | `root` 等，无 scope 可省略但尽量保留）。
+- **type** 允许：`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`。
+- **subject**：中文，一句话说清目的，避免只罗列文件名。
+- 需要时可在正文写：动机、关键点、影响与兼容性。
+- **发版相关**：`main` 上 `feat` / `fix` / `perf` 等会驱动 semantic-release 升版本；纯 `chore` / `docs` / `test` 等默认不触发新版本（与 `release.config.cjs` 一致）。
 
 ## 2. 提交前质量门禁
 
-- 在 commit 前必须保证：
-  - `pnpm run lint` 通过
-  - `pnpm run format:check` 通过
-  - `pnpm run typecheck` 通过
-- 若失败，优先执行：
-  - `pnpm run lint:fix`
-  - `pnpm run format`
+在提交前须通过：
 
-## 3. 工程结构要求
+- `pnpm run lint`
+- `pnpm run format:check`
+- `pnpm run typecheck`
 
-- 仅在对应子项目目录中开发：
-  - `apps/web`：前端
-  - `apps/server`：后端
-  - `apps/desktop`：桌面端
-- 文档放在 `docs`，并在功能变更时同步更新。
+失败时优先：`pnpm run lint:fix`、`pnpm run format`，再复查上述三项。
+
+## 3. 工程结构与放置规则
+
+- **业务代码**只放在对应子项目：
+  - `apps/web`：前端（Vite + React + Ant Design + Less）
+  - `apps/server`：后端（NestJS）
+  - `apps/desktop`：Electron 主进程 / 打包配置
+- **仓库根**：工作区配置、`scripts/`、`.github/workflows`、`release.config.cjs` 等共性设施。
+- **文档**：放在 `docs/`；功能或用户可见行为变化时同步 `README.md` 或 `docs` 相关页；**技术栈/选型变化**更新 `docs/tech-stack.md`。
+- **禁止提交**构建产物：`dist`、`apps/**/dist`、`apps/desktop/release` 等（以 `.gitignore` 为准）。
+
+## 4. 常用命令
+
+- 全栈开发：`pnpm run dev`（web + server + desktop）
+- 仅构建：`pnpm run build`
+- 桌面安装包：`pnpm run package:desktop`
+- 单包操作示例：`pnpm --filter @wallpaper/web exec ...`
+
+## 5. 代码与实现习惯
+
+- TypeScript 须通过 ESLint；风格与周边文件保持一致（命名、导入、注释密度）。
+- 实现需求时**可写清楚注释**（尤其非直观逻辑）；**不要**主动新增长篇总结文档或营销式 README，除非用户明确要求。
+- 前端样式：大屏与组件样式优先落在现有 Less 体系（如 `styles.less`、`styles/*.less`），避免无约定地散落 CSS。
+- **改动范围**：只改当前任务需要的文件，避免顺手大范围重构或无关格式化。
+
+## 6. 与 Cursor 规则文件的关系
+
+- 更细的持久规则见 `.cursor/rules/`（如 `project-standards.mdc`）。若与本文件冲突，以**更具体且针对当前仓库**的约定为准；发版与 CI 行为以 `.github/workflows` 与 `release.config.cjs` 为准。
