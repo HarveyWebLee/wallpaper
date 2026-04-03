@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/HarveyWebLee/wallpaper/compare/v1.0.0...v1.0.1) (2026-04-03)
+
+
+### Bug Fixes
+
+* **desktop:** 优化 Electron 加载生产环境 index.html 的路径 ([a3cb892](https://github.com/HarveyWebLee/wallpaper/commit/a3cb892aef2fd0baf3928d4f22ce721025fd7d65))
+
 # 1.0.0 (2026-04-03)
 
 

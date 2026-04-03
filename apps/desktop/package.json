@@ -1,6 +1,6 @@
 {
   "name": "@wallpaper/desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Wallpaper 退休倒计时大屏（Electron 桌面壳）",
   "author": "Wallpaper",
