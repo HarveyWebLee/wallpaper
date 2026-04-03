@@ -9,10 +9,14 @@ function isWallpaperDebug(): boolean {
   return v === "1" || v === "true";
 }
 
-/** 生产环境 index.html：未打包时落在 monorepo apps/web/dist；asar 内为 app.asar/web/dist */
+/**
+ * 生产环境 index.html。
+ * 已安装包：前端静态资源经 electron-builder extraResources 放在 app.asar 同级的 Resources/web/dist（asar 外的 ../web/dist 通配在部分版本下不会进包，导致白屏）。
+ * 未打包：相对 apps/desktop/dist 回到 monorepo 的 apps/web/dist。
+ */
 function prodIndexHtmlPath() {
   if (app.isPackaged) {
-    return path.join(__dirname, "..", "web", "dist", "index.html");
+    return path.join(process.resourcesPath, "web", "dist", "index.html");
   }
   return path.join(__dirname, "..", "..", "web", "dist", "index.html");
 }
