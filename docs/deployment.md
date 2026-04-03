@@ -81,3 +81,24 @@ pnpm run release:dry-run
 ```
 
 若需 Windows 安装包，可另增 `runs-on: windows-latest` 的打包任务并上传到同一 Release（可用 `softprops/action-gh-release` 等按 tag 附加资产）。
+
+## 7. macOS「已损坏，无法打开」与分发
+
+### 7.1 原因说明
+
+从网络下载的 `.dmg` / `.app` 会带 **`com.apple.quarantine`** 扩展属性；同时 **未签名、未公证** 的 Electron 应用无法通过默认 Gatekeeper 策略，系统可能显示 **「已损坏，无法打开」**，这与二进制损坏无关。
+
+### 7.2 用户侧临时处理
+
+- 清除隔离：`xattr -cr "/Applications/WallpaperScreensaver.app"`（路径以实际为准）。
+- 或在 Finder 中 **右键 → 打开**，首次选择「打开」。
+- 或在 **隐私与安全性** 中使用「仍要打开」。
+
+### 7.3 正式分发（推荐）
+
+1. 加入 [Apple Developer Program](https://developer.apple.com/)。
+2. 在钥匙串中安装 **Developer ID Application** 证书；CI 中使用 **导出为 .p12** 或 **Apple Distribution** 流程（勿将私钥提交进仓库，用 GitHub Encrypted secrets）。
+3. 在 `apps/desktop/package.json` 的 `build.mac` 中配置 `identity`、`hardenedRuntime: true`，并按 [electron-builder 文档](https://www.electron.build/code-signing) 接入 **notarize**（如 `afterSign` + `notarytool`）。
+4. 公证通过后，用户从网络下载的安装包一般可 **直接双击打开**，无需 `xattr`。
+
+本地快速自检签名：`codesign -dv --verbose=4 "path/to/WallpaperScreensaver.app"`。

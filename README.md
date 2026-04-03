@@ -40,6 +40,26 @@ pnpm run build
 pnpm run package:desktop
 ```
 
+## macOS：安装后提示「已损坏，无法打开」
+
+当前 CI/本地打出的 **未使用 Apple Developer ID 签名与公证** 的安装包，常被 **门禁（Gatekeeper）** 拦截，系统中文提示容易让人误以为 App 真坏了，多数是 **隔离属性（quarantine）** 或 **未信任开发者**。
+
+**处理方式（任选其一）**
+
+1. **除掉隔离标记**（从浏览器/GitHub Release 下载后最常见），在终端执行（按你实际安装路径改）：
+
+   ```bash
+   xattr -cr "/Applications/WallpaperScreensaver.app"
+   ```
+
+   若尚未拖进「应用程序」，可先对 **挂载出来的 `.app`** 执行同样命令，再拖入。
+
+2. **首次强制打开**：在 Finder 里对 `WallpaperScreensaver.app` **右键 → 打开 → 打开**（不要只双击）。
+
+3. **系统设置**：尝试打开一次后，打开 **系统设置 → 隐私与安全性**，对提示选择 **仍要打开**（具体文案随 macOS 版本略有不同）。
+
+**长期方案**：使用 **Apple Developer Program** 做 **Developer ID Application** 签名 + **Notarization（公证）**，并在 `electron-builder` 中配置证书与公证（见 [运维部署文档](./docs/deployment.md) 第 7 节）。
+
 ## 自动发版（main 分支）
 
 推送到 GitHub **`main`** 且存在可发布提交（例如 `feat:`、`fix:`、`perf:`）时，CI 会运行 **semantic-release**：统一提升各包 `version`、更新 `CHANGELOG.md`、构建 DMG 并创建 [GitHub Release](https://github.com/HarveyWebLee/wallpaper/releases)。  
