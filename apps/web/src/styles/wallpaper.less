@@ -1,0 +1,114 @@
+.wallpaper-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #020617;
+}
+
+.wallpaper-root--loading {
+  background: #020617;
+}
+
+.wallpaper-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wallpaper-media--image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.wallpaper-media--video {
+  object-fit: cover;
+}
+
+.wallpaper-scene--retirement {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(56, 189, 248, 0.12), transparent 55%),
+    linear-gradient(168deg, #020617 0%, #0f172a 42%, #020617 100%);
+}
+
+.wallpaper-scene--retirement .dash-hero-slot {
+  flex: none;
+}
+
+.wallpaper-scene--retirement .countdown-card.dash-hero {
+  min-height: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* 极光渐变场景 */
+.scene-gradient {
+  position: absolute;
+  inset: 0;
+  background: #020617;
+  overflow: hidden;
+}
+
+.scene-gradient__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  animation: sceneOrbFloat 12s ease-in-out infinite;
+}
+
+.scene-gradient__orb--1 {
+  width: 55vw;
+  height: 55vw;
+  top: -15%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.7), transparent 70%);
+}
+
+.scene-gradient__orb--2 {
+  width: 50vw;
+  height: 50vw;
+  right: -12%;
+  top: 20%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.55), transparent 70%);
+  animation-delay: -4s;
+}
+
+.scene-gradient__orb--3 {
+  width: 45vw;
+  height: 45vw;
+  bottom: -15%;
+  left: 25%;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.5), transparent 70%);
+  animation-delay: -8s;
+}
+
+@keyframes sceneOrbFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(3%, 4%) scale(1.05);
+  }
+  66% {
+    transform: translate(-2%, 2%) scale(0.98);
+  }
+}
+
+.scene-particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}

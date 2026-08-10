@@ -1,20 +1,32 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, screen } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import isDev from "electron-is-dev";
+import { registerIpcHandlers } from "./ipc";
+import { getSettings } from "./store";
+import { createTray, destroyTray } from "./tray";
+import { applyWallpapers, destroyWallpaperWindows } from "./wallpaper/wallpaper-manager";
 
-/** 为 true 时：打开 DevTools、主进程打印加载路径、渲染进程控制台转发到终端（需从终端启动才能看到） */
+let settingsWindow: BrowserWindow | null = null;
+let displayRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleWallpaperRefresh(): void {
+  if (displayRefreshTimer) {
+    clearTimeout(displayRefreshTimer);
+  }
+  displayRefreshTimer = setTimeout(() => {
+    displayRefreshTimer = null;
+    applyWallpapers();
+  }, 500);
+}
+
+/** 为 true 时：打开 DevTools、主进程打印加载路径、渲染进程控制台转发到终端 */
 function isWallpaperDebug(): boolean {
   const v = process.env.WALLPAPER_DEVTOOLS;
   return v === "1" || v === "true";
 }
 
-/**
- * 生产环境 index.html。
- * 已安装包：前端静态资源经 electron-builder extraResources 放在 app.asar 同级的 Resources/web/dist（asar 外的 ../web/dist 通配在部分版本下不会进包，导致白屏）。
- * 未打包：相对 apps/desktop/dist 回到 monorepo 的 apps/web/dist。
- */
-function prodIndexHtmlPath() {
+function prodIndexHtmlPath(): string {
   if (app.isPackaged) {
     return path.join(process.resourcesPath, "web", "dist", "index.html");
   }
@@ -37,59 +49,90 @@ function attachDebugHandlers(win: BrowserWindow, indexPath: string) {
     console.error("[main] did-fail-provisional-load", { code, desc, url });
   });
 
-  // 仅在调试时打印，避免用户从终端启动时泄露过多信息
   if (isWallpaperDebug()) {
     console.log("[main] isPackaged:", app.isPackaged);
-    console.log("[main] __dirname:", __dirname);
-    console.log("[main] app.getAppPath():", app.getAppPath());
     console.log("[main] index.html path:", indexPath);
     console.log("[main] index.html exists:", fs.existsSync(indexPath));
-    const preloadPath = path.join(__dirname, "preload.js");
-    console.log("[main] preload path:", preloadPath, "exists:", fs.existsSync(preloadPath));
   }
 }
 
-function createWindow() {
+function createSettingsWindow(): BrowserWindow {
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.focus();
+    return settingsWindow;
+  }
+
   const win = new BrowserWindow({
     width: 1280,
-    height: 800,
-    backgroundColor: "#111827",
+    height: 840,
+    minWidth: 960,
+    minHeight: 640,
+    backgroundColor: "#020617",
     autoHideMenuBar: true,
+    show: false,
+    title: "Wallpaper 动态壁纸",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      webSecurity: false
     }
   });
 
   if (isDev) {
     win.loadURL("http://127.0.0.1:5173");
-    win.webContents.openDevTools({ mode: "detach" });
-    return;
+    if (isWallpaperDebug()) {
+      win.webContents.openDevTools({ mode: "detach" });
+    }
+  } else {
+    const indexPath = prodIndexHtmlPath();
+    attachDebugHandlers(win, indexPath);
+    if (isWallpaperDebug()) {
+      win.webContents.openDevTools({ mode: "detach" });
+    }
+    win.loadFile(indexPath);
   }
 
-  const indexPath = prodIndexHtmlPath();
-  attachDebugHandlers(win, indexPath);
+  win.once("ready-to-show", () => {
+    win.show();
+  });
 
-  if (isWallpaperDebug()) {
-    win.webContents.openDevTools({ mode: "detach" });
-  }
+  win.on("closed", () => {
+    settingsWindow = null;
+  });
 
-  win.loadFile(indexPath);
+  settingsWindow = win;
+  return win;
+}
+
+function showSettingsWindow(): void {
+  createSettingsWindow();
 }
 
 app.whenReady().then(() => {
-  createWindow();
+  registerIpcHandlers();
+  createTray(showSettingsWindow);
+  createSettingsWindow();
+
+  const settings = getSettings();
+  if (settings.startWallpaperOnLaunch && !settings.paused) {
+    applyWallpapers();
+  }
+
+  screen.on("display-added", () => scheduleWallpaperRefresh());
+  screen.on("display-removed", () => scheduleWallpaperRefresh());
+  screen.on("display-metrics-changed", () => scheduleWallpaperRefresh());
 
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    showSettingsWindow();
   });
 });
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  /* 壁纸应用保持托盘运行，不随设置窗口关闭而退出 */
+});
+
+app.on("before-quit", () => {
+  destroyTray();
+  destroyWallpaperWindows();
 });

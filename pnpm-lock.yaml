@@ -76,6 +76,9 @@ importers:
       electron-is-dev:
         specifier: ^3.0.1
         version: 3.0.1
+      koffi:
+        specifier: ^3.1.4
+        version: 3.1.4
     devDependencies:
       electron:
         specifier: ^35.7.5
@@ -120,6 +123,9 @@ importers:
 
   apps/web:
     dependencies:
+      "@ant-design/icons":
+        specifier: ^6.3.2
+        version: 6.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       antd:
         specifier: ^6.3.4
         version: 6.3.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -258,16 +264,16 @@ packages:
       }
     engines: { node: ">=8.x" }
 
-  "@ant-design/icons-svg@4.4.2":
+  "@ant-design/icons-svg@4.5.0":
     resolution:
       {
-        integrity: sha512-vHbT+zJEVzllwP+CM+ul7reTEfBR0vgxFe7+lREAsAA7YGsYpboiq2sQNeQeRvh09GfQgs/GyFEvZpJ9cLXpXA==,
+        integrity: sha512-1BTUFyKPTBZ53MuTP8s0k5SFEXL7o3VHEOwLgzaoWKwnBeqIcqUtVshc4SKzhI6uACfqhJqBwBUE9FsWR3uULA==,
       }
 
-  "@ant-design/icons@6.1.0":
+  "@ant-design/icons@6.3.2":
     resolution:
       {
-        integrity: sha512-KrWMu1fIg3w/1F2zfn+JlfNDU8dDqILfA5Tg85iqs1lf8ooyGlbkA+TkwfOKKgqpUmAiRY1PTFpuOU2DAIgSUg==,
+        integrity: sha512-B6O5a5XJ4wjtNOfZejXYwHW5zvKV5gYkjGf11dHGLEbKn0ABDGndo41+gfIiXyTFhvESj4XTotuud33mUFid0g==,
       }
     engines: { node: ">=8" }
     peerDependencies:
@@ -1129,6 +1135,126 @@ packages:
         integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==,
       }
 
+  "@koromix/koffi-darwin-arm64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-/9o0uahf25sNXz7CczfMAsgdHrrrkDK3/d1W5ygJUC7QnpWo80103yTYpYahWP3vTABK5yjzKtURgssv1paskA==,
+      }
+    cpu: [arm64]
+    os: [darwin]
+
+  "@koromix/koffi-darwin-x64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-6IOhfAHbrySr6lYRU720Hg+IMQvtMpN08k9Ppf9WF8NxYRdHLnW1FJm7zCbClfrwudtjhS/piwDYwgAkO5u8cg==,
+      }
+    cpu: [x64]
+    os: [darwin]
+
+  "@koromix/koffi-freebsd-arm64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-JKCWC0awdVvq7Nd/etn4PXFTa7uvyHn7IzqtaOZ3r4dJRdwQVby7Ai/wsQo8UUrJfAYlALkLYgFgU8wgsnAE/A==,
+      }
+    cpu: [arm64]
+    os: [freebsd]
+
+  "@koromix/koffi-freebsd-ia32@3.1.4":
+    resolution:
+      {
+        integrity: sha512-gU9pShDRLMZzftdGW+mTzyL8Cpa/7nzHPHe5vFakjGgtIzVFzdFBqwli4oB+tFsx44W1VqMMlvMMVlnz54ERiQ==,
+      }
+    cpu: [ia32]
+    os: [freebsd]
+
+  "@koromix/koffi-freebsd-x64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-2kppLX97xBM3WoQET6noN4W02zT2fkFRXHYluAwcCcmkEax8AVJ1CYs6hxcZ3kaNPc+5P7yMw3V/b1lg2v3aMw==,
+      }
+    cpu: [x64]
+    os: [freebsd]
+
+  "@koromix/koffi-linux-arm64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-yYbypuGVGqrNchkAMY59kj+7TZ1c1u9lXRG1+74X9T8G4rOaushoVONNYLuu+ygpbwsKzz/NvEDtRioRU/dQlQ==,
+      }
+    cpu: [arm64]
+    os: [linux]
+
+  "@koromix/koffi-linux-ia32@3.1.4":
+    resolution:
+      {
+        integrity: sha512-IoA/8Qfc6ZEmwMw2Nf4aSp9RfJnxh0UHhdqD4FsVXm0vC797kLMuzj744vv5tll+waVfjrU10jREqjtnMVFoQw==,
+      }
+    cpu: [ia32]
+    os: [linux]
+
+  "@koromix/koffi-linux-loong64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-ZUTdea+9dg6CV9J9CIGbhTh0FtSBgvcGKqDrlp9BVQF71jEDKOri1by/TrDe8yQUyC5kzWN8vWnkzES5wT0xDg==,
+      }
+    cpu: [loong64]
+    os: [linux]
+
+  "@koromix/koffi-linux-riscv64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-CINyyhNYV/8MX52MGhYcik2G6PXH+KEU2JEO7dOONlsGol4lSGyW40RvYA4RQgNYk8q8imGSEScL08X8eOXnaA==,
+      }
+    cpu: [riscv64]
+    os: [linux]
+
+  "@koromix/koffi-linux-x64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-x3XnAy/tUTTCX/gMpV7VJNpOQIVQvzNhNYDrpyIeS9Q8/f1qLsE0vp0tj7A/YEDIfMVLqoJtyamfRJc04+vk4w==,
+      }
+    cpu: [x64]
+    os: [linux]
+
+  "@koromix/koffi-openbsd-ia32@3.1.4":
+    resolution:
+      {
+        integrity: sha512-r9p/fffvmBm7+iT5BZ+c17gZJ280jvmbinrPZqjG14rF9I4lk7xrlV79YfsexkeN4mcPjF2hSPtbMNFBoQU3Dw==,
+      }
+    cpu: [ia32]
+    os: [openbsd]
+
+  "@koromix/koffi-openbsd-x64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-SNp5AxOzheC2YaWPu3Y86wxRHHWf6V9NMl5Ot5nu9OpnP61Yinzug7JwsCeXtcZZTbKLsfsWoT7y4n17UYpOVA==,
+      }
+    cpu: [x64]
+    os: [openbsd]
+
+  "@koromix/koffi-win32-arm64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-oS8ETU35AelOD6DY7xmmz9qq26Xl38upXWiZbsdxbtH9UEIY0QpenQOuCK/0+q4CtfiLorRUlglGkO9YgPAIeA==,
+      }
+    cpu: [arm64]
+    os: [win32]
+
+  "@koromix/koffi-win32-ia32@3.1.4":
+    resolution:
+      {
+        integrity: sha512-zd7Qh8s4fzblD9zzuDf44XCbujYg3QrffhgcNJg79/YC6ABT2m0CUtX4yFic9EWm2ps8NPAM25kCTCXPpt3eaw==,
+      }
+    cpu: [ia32]
+    os: [win32]
+
+  "@koromix/koffi-win32-x64@3.1.4":
+    resolution:
+      {
+        integrity: sha512-BPeQXc1bRd0QBOklvsP+AjoRnUzKbPNE6rfx7VNxrebhh09MKld2ibstgKWn6ejQLEcfKEoUJ+WAWIhX4AOsIg==,
+      }
+    cpu: [x64]
+    os: [win32]
+
   "@lukeed/csprng@1.1.0":
     resolution:
       {
@@ -1791,6 +1917,15 @@ packages:
       react: ">=18.0.0"
       react-dom: ">=18.0.0"
 
+  "@rc-component/util@1.12.0":
+    resolution:
+      {
+        integrity: sha512-AEjPL8JVdohIITaiXokyjL9WQ6tKWWjAYK9QU16tGNE9JaQABBQy+hA4H2Lup5MgXy9yY3iLrbZJheuU13hTdQ==,
+      }
+    peerDependencies:
+      react: ">=18.0.0"
+      react-dom: ">=18.0.0"
+
   "@rc-component/virtual-list@1.0.2":
     resolution:
       {
@@ -1862,7 +1997,6 @@ packages:
       }
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   "@rollup/rollup-linux-arm-musleabihf@4.60.0":
     resolution:
@@ -1871,7 +2005,6 @@ packages:
       }
     cpu: [arm]
     os: [linux]
-    libc: [musl]
 
   "@rollup/rollup-linux-arm64-gnu@4.60.0":
     resolution:
@@ -1880,7 +2013,6 @@ packages:
       }
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   "@rollup/rollup-linux-arm64-musl@4.60.0":
     resolution:
@@ -1889,7 +2021,6 @@ packages:
       }
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   "@rollup/rollup-linux-loong64-gnu@4.60.0":
     resolution:
@@ -1898,7 +2029,6 @@ packages:
       }
     cpu: [loong64]
     os: [linux]
-    libc: [glibc]
 
   "@rollup/rollup-linux-loong64-musl@4.60.0":
     resolution:
@@ -1907,7 +2037,6 @@ packages:
       }
     cpu: [loong64]
     os: [linux]
-    libc: [musl]
 
   "@rollup/rollup-linux-ppc64-gnu@4.60.0":
     resolution:
@@ -1916,7 +2045,6 @@ packages:
       }
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   "@rollup/rollup-linux-ppc64-musl@4.60.0":
     resolution:
@@ -1925,7 +2053,6 @@ packages:
       }
     cpu: [ppc64]
     os: [linux]
-    libc: [musl]
 
   "@rollup/rollup-linux-riscv64-gnu@4.60.0":
     resolution:
@@ -1934,7 +2061,6 @@ packages:
       }
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   "@rollup/rollup-linux-riscv64-musl@4.60.0":
     resolution:
@@ -1943,7 +2069,6 @@ packages:
       }
     cpu: [riscv64]
     os: [linux]
-    libc: [musl]
 
   "@rollup/rollup-linux-s390x-gnu@4.60.0":
     resolution:
@@ -1952,7 +2077,6 @@ packages:
       }
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   "@rollup/rollup-linux-x64-gnu@4.60.0":
     resolution:
@@ -1961,7 +2085,6 @@ packages:
       }
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   "@rollup/rollup-linux-x64-musl@4.60.0":
     resolution:
@@ -1970,7 +2093,6 @@ packages:
       }
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   "@rollup/rollup-openbsd-x64@4.60.0":
     resolution:
@@ -2518,6 +2640,7 @@ packages:
         integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==,
       }
     engines: { node: ">=10.0.0" }
+    deprecated: this version has critical issues, please update to the latest version
 
   "@xtuc/ieee754@1.2.0":
     resolution:
@@ -4543,6 +4666,7 @@ packages:
       {
         integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==,
       }
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@13.0.0:
@@ -4557,7 +4681,7 @@ packages:
       {
         integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==,
       }
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@8.1.0:
     resolution:
@@ -4565,7 +4689,7 @@ packages:
         integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==,
       }
     engines: { node: ">=12" }
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-agent@3.0.0:
     resolution:
@@ -5253,6 +5377,12 @@ packages:
     resolution:
       {
         integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==,
+      }
+
+  koffi@3.1.4:
+    resolution:
+      {
+        integrity: sha512-KHX39XIg7afe8ds+0MHPoLiKR9dCzsVK4oAmBUSaeJlcX0xur22f15C2DILbZ6GJ9eyqC+e6Sb1cTG7M17z+Tg==,
       }
 
   lazy-val@1.0.5:
@@ -6582,6 +6712,12 @@ packages:
         integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==,
       }
 
+  react-is@19.2.8:
+    resolution:
+      {
+        integrity: sha512-s5un28nYxKJw5gvUHyW5PCC28CvBqLu9r3cWgzHT4Vo/5fqqkFcdRYsGcKf50WMPpjjFZS5d76fn3YCo2njKwQ==,
+      }
+
   react-refresh@0.17.0:
     resolution:
       {
@@ -7325,6 +7461,7 @@ packages:
         integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==,
       }
     engines: { node: ">=10" }
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   temp-dir@3.0.0:
     resolution:
@@ -8101,13 +8238,13 @@ snapshots:
 
   "@ant-design/fast-color@3.0.1": {}
 
-  "@ant-design/icons-svg@4.4.2": {}
+  "@ant-design/icons-svg@4.5.0": {}
 
-  "@ant-design/icons@6.1.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
+  "@ant-design/icons@6.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
     dependencies:
       "@ant-design/colors": 8.0.1
-      "@ant-design/icons-svg": 4.4.2
-      "@rc-component/util": 1.10.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      "@ant-design/icons-svg": 4.5.0
+      "@rc-component/util": 1.12.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       clsx: 2.1.1
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
@@ -8655,6 +8792,51 @@ snapshots:
       "@jridgewell/resolve-uri": 3.1.2
       "@jridgewell/sourcemap-codec": 1.5.5
 
+  "@koromix/koffi-darwin-arm64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-darwin-x64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-freebsd-arm64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-freebsd-ia32@3.1.4":
+    optional: true
+
+  "@koromix/koffi-freebsd-x64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-linux-arm64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-linux-ia32@3.1.4":
+    optional: true
+
+  "@koromix/koffi-linux-loong64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-linux-riscv64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-linux-x64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-openbsd-ia32@3.1.4":
+    optional: true
+
+  "@koromix/koffi-openbsd-x64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-win32-arm64@3.1.4":
+    optional: true
+
+  "@koromix/koffi-win32-ia32@3.1.4":
+    optional: true
+
+  "@koromix/koffi-win32-x64@3.1.4":
+    optional: true
+
   "@lukeed/csprng@1.1.0": {}
 
   "@malept/cross-spawn-promise@2.0.0":
@@ -9189,6 +9371,13 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       react-is: 18.3.1
+
+  "@rc-component/util@1.12.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
+    dependencies:
+      is-mobile: 5.0.0
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      react-is: 19.2.8
 
   "@rc-component/virtual-list@1.0.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
     dependencies:
@@ -9823,7 +10012,7 @@ snapshots:
       "@ant-design/cssinjs": 2.1.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       "@ant-design/cssinjs-utils": 2.1.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       "@ant-design/fast-color": 3.0.1
-      "@ant-design/icons": 6.1.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      "@ant-design/icons": 6.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       "@ant-design/react-slick": 2.0.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       "@babel/runtime": 7.29.2
       "@rc-component/cascader": 1.14.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -11482,6 +11671,24 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
+  koffi@3.1.4:
+    optionalDependencies:
+      "@koromix/koffi-darwin-arm64": 3.1.4
+      "@koromix/koffi-darwin-x64": 3.1.4
+      "@koromix/koffi-freebsd-arm64": 3.1.4
+      "@koromix/koffi-freebsd-ia32": 3.1.4
+      "@koromix/koffi-freebsd-x64": 3.1.4
+      "@koromix/koffi-linux-arm64": 3.1.4
+      "@koromix/koffi-linux-ia32": 3.1.4
+      "@koromix/koffi-linux-loong64": 3.1.4
+      "@koromix/koffi-linux-riscv64": 3.1.4
+      "@koromix/koffi-linux-x64": 3.1.4
+      "@koromix/koffi-openbsd-ia32": 3.1.4
+      "@koromix/koffi-openbsd-x64": 3.1.4
+      "@koromix/koffi-win32-arm64": 3.1.4
+      "@koromix/koffi-win32-ia32": 3.1.4
+      "@koromix/koffi-win32-x64": 3.1.4
+
   lazy-val@1.0.5: {}
 
   lazystream@1.0.1:
@@ -12146,6 +12353,8 @@ snapshots:
       scheduler: 0.27.0
 
   react-is@18.3.1: {}
+
+  react-is@19.2.8: {}
 
   react-refresh@0.17.0: {}
 

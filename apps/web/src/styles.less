@@ -1,5 +1,6 @@
 @import "./styles/flip-clock.less";
 @import "./styles/toon-picker.less";
+@import "./styles/app-layout.less";
 
 html,
 body,
@@ -17,13 +18,11 @@ body,
   --dash-panel: rgba(15, 23, 42, 0.55);
   --dash-panel-edge: rgba(56, 189, 248, 0.14);
   --dash-text-dim: rgba(148, 163, 184, 0.88);
-  /* 翻牌尺寸：随视口缩放（略放大主倒计时数字格） */
   --dash-flip-h: clamp(78px, 12.4vmin, 158px);
   --dash-flip-w: clamp(68px, 11vmin, 138px);
   --dash-flip-perspective: clamp(280px, 40vmin, 520px);
 }
 
-/* 深空背景 + 环境光（与光斑层叠） */
 .app-shell {
   position: relative;
   min-height: 100vh;
@@ -39,7 +38,6 @@ body,
     linear-gradient(168deg, #020617 0%, #0f172a 42%, #020617 100%);
 }
 
-/* 细网格：低对比，避免抢主内容 */
 .app-shell__grid {
   position: absolute;
   inset: 0;
@@ -52,7 +50,6 @@ body,
   mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, black 20%, transparent 72%);
 }
 
-/* 微弱扫描线：增加「监视器」质感，动画极慢 */
 .app-shell__scanline {
   position: absolute;
   inset: 0;
@@ -93,7 +90,6 @@ body,
   min-height: 0;
 }
 
-/* ========== 顶栏：玻璃条 + 品牌字 ========== */
 .dash-header {
   padding: 0 clamp(16px, 3vw, 40px) !important;
   height: clamp(56px, 8vh, 72px) !important;
@@ -155,7 +151,6 @@ body,
   box-shadow: 0 0 18px var(--dash-glow);
 }
 
-/* ========== 主画布：玻璃拟态大面板 ========== */
 .main-card.ant-card {
   flex: 1;
   width: 100%;
@@ -191,7 +186,6 @@ body,
   box-sizing: border-box;
 }
 
-/* 占满可用宽度，全屏下不再限制 1200px；左右随 vw 留出安全边距 */
 .dash-stack {
   width: 100%;
   max-width: none;
@@ -208,7 +202,6 @@ body,
   flex-direction: column;
 }
 
-/* Ant Space 每项包一层 item；最后一项（倒计时）要参与纵向分高 */
 .dash-stack.ant-space-vertical > .ant-space-item:last-child {
   flex: 1;
   display: flex;
@@ -216,7 +209,6 @@ body,
   min-height: 0;
 }
 
-/* 全屏时占位伸展，让倒计时卡片吃满剩余高度，翻牌在中间带垂直留白 */
 .dash-hero-slot {
   flex: 1;
   display: flex;
@@ -240,7 +232,6 @@ body,
   min-height: 0;
 }
 
-/* ========== 配置区块标题 ========== */
 .dash-section--config {
   margin-bottom: 4px;
 }
@@ -281,9 +272,6 @@ body,
   letter-spacing: 0.04em;
 }
 
-/* 日期选择器卡通样式见 toon-picker.less（.dash-datepicker--toon） */
-
-/* ========== 数据条：左侧能量条 + 内发光 ========== */
 .dash-panel.retirement-highlight.stat-card {
   position: relative;
   border-radius: 12px;
@@ -328,7 +316,6 @@ body,
   word-break: break-all;
 }
 
-/* ========== 倒计时主视觉：角标 + 脉动光晕 ========== */
 .countdown-card.dash-hero {
   position: relative;
   border-radius: 14px;
@@ -368,7 +355,6 @@ body,
 
   .ant-card-body {
     position: relative;
-    /* 翻牌放大后多留一点内边距，避免贴边 */
     padding: clamp(24px, 3vh, 36px) clamp(20px, 3vw, 32px) clamp(28px, 3.2vh, 40px) !important;
   }
 }
@@ -402,12 +388,10 @@ body,
   border-radius: 12px;
 }
 
-/* 复用类名：非 hero 的 stat 已并入 dash-panel；此处兜底 */
 .countdown-card:not(.dash-hero) {
   border-radius: 14px;
 }
 
-/* 背景光斑：略柔、与深色底融合 */
 .floating-orb {
   position: absolute;
   border-radius: 999px;

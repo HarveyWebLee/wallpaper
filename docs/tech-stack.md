@@ -11,7 +11,7 @@
 ## 2. 前端技术栈（apps/web）
 
 - React 19
-- Ant Design（`antd6`）
+- Ant Design 6 + @ant-design/icons
 - dayjs
 - Vite 6
 - Less（大屏可视化布局、`flip-clock` 翻牌主题；`ConfigProvider` 暗色算法 + Design Token）
@@ -30,9 +30,18 @@
 
 - Electron 35
 - electron-builder
+- koffi（Windows WorkerW / macOS 窗口层级 FFI）
+- 本地 JSON 设置持久化（`userData/wallpaper-settings.json`）
+- 系统托盘与 IPC（`contextBridge` + `ipcMain.handle`）
 - TypeScript
 - ESLint 9 + typescript-eslint
 - Prettier 3
+
+### 壁纸渲染
+
+- 设置窗口：`index.html` → React 多页面应用
+- 壁纸窗口：`wallpaper.html` → 独立轻量渲染入口（图片/视频/场景）
+- 生产环境通过 `extraResources` 打包 `web/dist`
 
 ## 5. 工程化与质量体系
 

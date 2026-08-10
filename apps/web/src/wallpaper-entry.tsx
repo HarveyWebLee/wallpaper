@@ -1,17 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ConfigProvider } from "antd";
 import "antd/dist/reset.css";
 import "./styles.less";
-import "./styles/app-layout.less";
 import "./styles/wallpaper.less";
-import { App } from "./App";
-import { dashboardTheme } from "./theme/dashboardTheme";
+import { WallpaperApp } from "./WallpaperApp";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ConfigProvider theme={dashboardTheme}>
-      <App />
-    </ConfigProvider>
+    <WallpaperApp />
   </React.StrictMode>
 );

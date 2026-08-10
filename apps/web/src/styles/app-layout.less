@@ -1,0 +1,181 @@
+/* 设置窗口布局 */
+.app-shell--settings {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-sider {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-right: 1px solid rgba(56, 189, 248, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.app-sider__brand {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+}
+
+.app-sider__title {
+  margin: 0 !important;
+  background: linear-gradient(92deg, #e2e8f0, #38bdf8, #2dd4bf);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.app-sider__subtitle {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(148, 163, 184, 0.8);
+  text-transform: uppercase;
+}
+
+.app-sider__menu.ant-menu {
+  background: transparent;
+  border-inline-end: none;
+  padding: 8px;
+}
+
+.app-sider__menu .ant-menu-item-selected {
+  background: rgba(45, 212, 191, 0.12) !important;
+  border: 1px solid rgba(45, 212, 191, 0.25);
+}
+
+.app-page-content {
+  padding: clamp(16px, 2.5vw, 32px) clamp(16px, 3vw, 40px) !important;
+  overflow: auto;
+}
+
+.app-topbar {
+  height: 64px !important;
+  line-height: 64px !important;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header--row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-header__title {
+  margin: 0 !important;
+  color: rgba(241, 245, 249, 0.96) !important;
+}
+
+.glass-card {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.75), rgba(30, 41, 59, 0.45)) !important;
+  border: 1px solid rgba(56, 189, 248, 0.14) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(12px);
+}
+
+.wallpaper-card {
+  border-radius: 12px !important;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.65) !important;
+  border: 1px solid rgba(56, 189, 248, 0.12) !important;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.wallpaper-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(45, 212, 191, 0.35) !important;
+}
+
+.wallpaper-card--active {
+  border-color: rgba(45, 212, 191, 0.5) !important;
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.15);
+}
+
+.wallpaper-card__preview {
+  height: 120px;
+  background: #0f172a;
+  position: relative;
+  overflow: hidden;
+}
+
+.wallpaper-card__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wallpaper-card__body {
+  padding: 12px;
+}
+
+.preview-gradient {
+  height: 100%;
+  background: linear-gradient(135deg, #0f172a, #38bdf8, #2dd4bf, #8b5cf6);
+  animation: previewShift 6s ease infinite;
+}
+
+.preview-particles {
+  height: 100%;
+  background: radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.4), #020617);
+}
+
+.preview-retirement {
+  height: 100%;
+  background: linear-gradient(160deg, #1e293b, #0f172a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(148, 163, 184, 0.8);
+  font-size: 12px;
+}
+
+.preview-video {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: rgba(56, 189, 248, 0.6);
+  background: #0f172a;
+}
+
+@keyframes previewShift {
+  0%,
+  100% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(30deg);
+  }
+}
+
+.settings-group .ant-card-head-title {
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.settings-row--column {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.settings-row__hint {
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.scene-editor-card .ant-card-body {
+  padding: 24px !important;
+}
