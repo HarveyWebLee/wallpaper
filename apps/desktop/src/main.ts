@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, screen } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import isDev from "electron-is-dev";
@@ -8,6 +8,17 @@ import { createTray, destroyTray } from "./tray";
 import { applyWallpapers, destroyWallpaperWindows } from "./wallpaper/wallpaper-manager";
 
 let settingsWindow: BrowserWindow | null = null;
+let displayRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleWallpaperRefresh(): void {
+  if (displayRefreshTimer) {
+    clearTimeout(displayRefreshTimer);
+  }
+  displayRefreshTimer = setTimeout(() => {
+    displayRefreshTimer = null;
+    applyWallpapers();
+  }, 500);
+}
 
 /** 为 true 时：打开 DevTools、主进程打印加载路径、渲染进程控制台转发到终端 */
 function isWallpaperDebug(): boolean {
@@ -63,7 +74,8 @@ function createSettingsWindow(): BrowserWindow {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      webSecurity: false
     }
   });
 
@@ -106,6 +118,10 @@ app.whenReady().then(() => {
   if (settings.startWallpaperOnLaunch && !settings.paused) {
     applyWallpapers();
   }
+
+  screen.on("display-added", () => scheduleWallpaperRefresh());
+  screen.on("display-removed", () => scheduleWallpaperRefresh());
+  screen.on("display-metrics-changed", () => scheduleWallpaperRefresh());
 
   app.on("activate", () => {
     showSettingsWindow();

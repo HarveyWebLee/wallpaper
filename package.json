@@ -21,6 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm --filter @wallpaper/web test",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run",
     "prepare": "husky"
@@ -58,5 +59,13 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "koffi",
+      "esbuild",
+      "@nestjs/core"
+    ]
   }
 }

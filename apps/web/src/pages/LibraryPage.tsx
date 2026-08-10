@@ -9,6 +9,7 @@ import {
 import { useDesktopApi, useSettings, useWallpapers } from "../hooks/useDesktopApi";
 import type { WallpaperItem } from "../types/desktop";
 import { BUILTIN_WALLPAPERS } from "../types/desktop";
+import { toMediaFileUrl } from "../utils/fileUrl";
 
 function WallpaperCard({
   item,
@@ -35,7 +36,7 @@ function WallpaperCard({
           <div className="preview-retirement" />
         )}
         {item.type === "image" && item.filePath && (
-          <img src={`file://${item.filePath}`} alt={item.name} />
+          <img src={toMediaFileUrl(item.filePath)} alt={item.name} />
         )}
         {item.type === "video" && <div className="preview-video">{icon}</div>}
       </div>

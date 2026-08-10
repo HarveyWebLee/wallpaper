@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AppSettings, DesktopApi, SettingsPatch, WallpaperItem } from "../types/desktop";
+import { BUILTIN_WALLPAPERS } from "../types/desktop";
 
 const defaultApi: DesktopApi = {
   platform: "web",
@@ -18,9 +19,9 @@ const defaultApi: DesktopApi = {
     wallpaperApplied: false
   }),
   patchSettings: async (patch) => ({ ...(await defaultApi.getSettings()), ...patch }),
-  listWallpapers: async () => [],
-  addWallpaperFiles: async () => [],
-  removeWallpaper: async () => [],
+  listWallpapers: async () => BUILTIN_WALLPAPERS,
+  addWallpaperFiles: async () => BUILTIN_WALLPAPERS,
+  removeWallpaper: async () => BUILTIN_WALLPAPERS,
   applyWallpapers: async () => defaultApi.getSettings(),
   pauseWallpapers: async () => defaultApi.getSettings(),
   resumeWallpapers: async () => defaultApi.getSettings(),

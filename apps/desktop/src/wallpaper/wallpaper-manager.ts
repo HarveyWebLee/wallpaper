@@ -2,6 +2,7 @@ import { BrowserWindow, screen } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { app } from "electron";
+import isDev from "electron-is-dev";
 import { findWallpaper, getSettings, patchSettings } from "../store";
 import { attachMacOSWallpaper, detachMacOSWallpaper } from "./macos-attach";
 import { attachWindowsWallpaper, detachWindowsWallpaper } from "./windows-attach";
@@ -18,7 +19,8 @@ function prodWallpaperHtmlPath(): string {
   if (app.isPackaged) {
     return path.join(process.resourcesPath, "web", "dist", "wallpaper.html");
   }
-  return path.join(__dirname, "..", "..", "web", "dist", "wallpaper.html");
+  // dist/wallpaper/ → apps/web/dist
+  return path.join(__dirname, "..", "..", "..", "web", "dist", "wallpaper.html");
 }
 
 function devWallpaperUrl(displayId: string, wallpaperId: string): string {
@@ -85,7 +87,7 @@ function createWallpaperWindow(display: Electron.Display, wallpaperId: string): 
   const displayId = String(display.id);
   const params = new URLSearchParams({ displayId, wallpaperId });
 
-  if (process.env.NODE_ENV === "development") {
+  if (isDev) {
     win.loadURL(devWallpaperUrl(displayId, wallpaperId));
   } else {
     const htmlPath = prodWallpaperHtmlPath();

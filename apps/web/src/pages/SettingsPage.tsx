@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Card, Col, Row, Select, Slider, Space, Switch, Typography, message } from "antd";
 import { useDesktopApi, useSettings } from "../hooks/useDesktopApi";
 import type { PerformanceMode } from "../types/desktop";
@@ -5,6 +6,11 @@ import type { PerformanceMode } from "../types/desktop";
 export function SettingsPage() {
   const api = useDesktopApi();
   const { settings, patch } = useSettings();
+  const [videoVolume, setVideoVolume] = useState(0);
+
+  useEffect(() => {
+    setVideoVolume(settings?.videoVolume ?? 0);
+  }, [settings]);
 
   if (!settings) return null;
 
@@ -89,7 +95,8 @@ export function SettingsPage() {
                 <Slider
                   min={0}
                   max={100}
-                  value={settings.videoVolume}
+                  value={videoVolume}
+                  onChange={setVideoVolume}
                   onChangeComplete={(v) => update({ videoVolume: v })}
                 />
               </div>

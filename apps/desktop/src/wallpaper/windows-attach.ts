@@ -1,36 +1,37 @@
 import type { BrowserWindow } from "electron";
-import koffi from "koffi";
 
-const user32 = koffi.load("user32.dll");
-
-const FindWindowExW = user32.func("FindWindowExW", "void*", ["void*", "void*", "str16", "str16"]);
-const SendMessageTimeoutW = user32.func("SendMessageTimeoutW", "intptr", [
-  "void*",
-  "uint32",
-  "intptr",
-  "intptr",
-  "uint32",
-  "uint32",
-  "uintptr*"
-]);
-const SetParent = user32.func("SetParent", "void*", ["void*", "void*"]);
-const ShowWindow = user32.func("ShowWindow", "int", ["void*", "int"]);
-const SetWindowLongW = user32.func("SetWindowLongW", "int32", ["void*", "int32", "int32"]);
-const GetWindowLongW = user32.func("GetWindowLongW", "int32", ["void*", "int32"]);
-
-const GWL_EXSTYLE = -20;
-const WS_EX_TOOLWINDOW = 0x00000080;
-const WS_EX_NOACTIVATE = 0x08000000;
-const SW_SHOW = 5;
-
+let user32: ReturnType<typeof import("koffi").load> | null = null;
 let workerW: unknown = null;
 
+function getUser32() {
+  if (!user32) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const koffi = require("koffi") as typeof import("koffi");
+    user32 = koffi.load("user32.dll");
+  }
+  return user32;
+}
+
 function findWorkerW(): unknown {
+  const u32 = getUser32();
+  const FindWindowExW = u32.func("FindWindowExW", "void*", ["void*", "void*", "str16", "str16"]);
+  const SendMessageTimeoutW = u32.func("SendMessageTimeoutW", "intptr", [
+    "void*",
+    "uint32",
+    "intptr",
+    "intptr",
+    "uint32",
+    "uint32",
+    "uintptr*"
+  ]);
+
   const progman = FindWindowExW(null, null, "Progman", null);
   if (!progman) {
     throw new Error("未找到 Progman 窗口");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const koffi = require("koffi") as typeof import("koffi");
   const resultPtr = koffi.alloc("uintptr", 1);
   SendMessageTimeoutW(progman, 0x052c, 0, 0, 0, 1000, resultPtr);
   koffi.free(resultPtr);
@@ -53,6 +54,8 @@ function findWorkerW(): unknown {
 }
 
 function getElectronHwnd(win: BrowserWindow): unknown {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const koffi = require("koffi") as typeof import("koffi");
   const handle = win.getNativeWindowHandle();
   if (handle.length >= 8) {
     return koffi.decode(handle, "void*");
@@ -66,6 +69,19 @@ function getElectronHwnd(win: BrowserWindow): unknown {
  * Windows：将窗口挂到 WorkerW 层，显示在桌面图标下方。
  */
 export function attachWindowsWallpaper(win: BrowserWindow): void {
+  if (process.platform !== "win32") return;
+
+  const u32 = getUser32();
+  const SetParent = u32.func("SetParent", "void*", ["void*", "void*"]);
+  const ShowWindow = u32.func("ShowWindow", "int", ["void*", "int"]);
+  const SetWindowLongW = u32.func("SetWindowLongW", "int32", ["void*", "int32", "int32"]);
+  const GetWindowLongW = u32.func("GetWindowLongW", "int32", ["void*", "int32"]);
+
+  const GWL_EXSTYLE = -20;
+  const WS_EX_TOOLWINDOW = 0x00000080;
+  const WS_EX_NOACTIVATE = 0x08000000;
+  const SW_SHOW = 5;
+
   if (!workerW) {
     workerW = findWorkerW();
   }
@@ -79,6 +95,10 @@ export function attachWindowsWallpaper(win: BrowserWindow): void {
 }
 
 export function detachWindowsWallpaper(win: BrowserWindow): void {
+  if (process.platform !== "win32") return;
+
+  const u32 = getUser32();
+  const SetParent = u32.func("SetParent", "void*", ["void*", "void*"]);
   const hwnd = getElectronHwnd(win);
   SetParent(hwnd, null);
 }
