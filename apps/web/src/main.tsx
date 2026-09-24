@@ -115,6 +115,15 @@ function App() {
     [retirementDate, now]
   );
 
+  /** 从出生到退休的人生进度（0-100），用于进度条可视化 */
+  const lifeProgress = useMemo(() => {
+    if (!birthday || !retirementDate) return 0;
+    const total = retirementDate.diff(birthday);
+    if (total <= 0) return 100;
+    const ratio = (now.diff(birthday) / total) * 100;
+    return Math.min(100, Math.max(0, ratio));
+  }, [birthday, retirementDate, now]);
+
   const isRetired = remainingSeconds <= 0;
 
   return (
@@ -134,7 +143,13 @@ function App() {
             </Typography.Title>
             <span className="dash-header__subtitle">RETIREMENT · DESKTOP VISUALIZATION</span>
           </div>
-          <div className="dash-header__accent" aria-hidden />
+          <div className="dash-header__meta">
+            <div className="dash-header__clock" aria-live="off">
+              {now.format("HH:mm:ss")}
+            </div>
+            <div className="dash-header__today">{now.format("YYYY / MM / DD")}</div>
+            <div className="dash-header__accent" aria-hidden />
+          </div>
         </div>
       </Header>
       <Content className="main-content">
@@ -197,6 +212,26 @@ function App() {
                 </Card>
               </Col>
             </Row>
+
+            {retirementDate && !isRetired ? (
+              <div className="dash-progress" role="group" aria-label="人生进度">
+                <div className="dash-progress__head">
+                  <span className="dash-progress__label">
+                    人生进度 · 距满 {RETIREMENT_AGE} 周岁
+                  </span>
+                  <span className="dash-progress__value">{lifeProgress.toFixed(1)}%</span>
+                </div>
+                <div className="dash-progress__track">
+                  <div
+                    className="dash-progress__fill"
+                    style={{ width: `${lifeProgress}%` }}
+                    aria-hidden
+                  >
+                    <span className="dash-progress__spark" />
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <div className="dash-hero-slot">
               <Card className="countdown-card dash-hero" bordered={false}>
