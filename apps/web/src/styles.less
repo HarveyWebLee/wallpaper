@@ -151,15 +151,16 @@ body,
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
-  padding: 10px 0;
+  gap: 3px;
+  /* 覆盖 Header 的大 line-height，避免子文本继承后撑破顶栏被裁切 */
+  line-height: 1;
 }
 
 .dash-header__clock {
   font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
   font-weight: 600;
-  font-size: clamp(16px, 1.7vw, 24px);
-  line-height: 1.05;
+  font-size: clamp(15px, 1.5vw, 21px);
+  line-height: 1;
   letter-spacing: 0.14em;
   color: rgba(226, 240, 253, 0.96);
   font-variant-numeric: tabular-nums;
@@ -169,14 +170,15 @@ body,
 .dash-header__today {
   font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
   font-size: 10px;
+  line-height: 1;
   font-weight: 500;
-  letter-spacing: 0.22em;
-  color: rgba(100, 116, 139, 0.95);
+  letter-spacing: 0.2em;
+  color: rgba(148, 163, 184, 0.9);
 }
 
 .dash-header__accent {
-  margin-top: 3px;
-  width: 132px;
+  margin-top: 2px;
+  width: 128px;
   height: 3px;
   border-radius: 2px;
   background: linear-gradient(90deg, transparent, var(--dash-teal), var(--dash-cyan), transparent);
