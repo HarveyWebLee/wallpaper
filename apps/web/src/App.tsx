@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ConfigProvider } from "antd";
 import { dashboardTheme } from "./lib/theme";
 import { useHashRoute } from "./hooks";
@@ -8,6 +9,15 @@ import AdminPage from "./pages/AdminPage";
 export default function App() {
   const hash = useHashRoute();
   const isAdmin = hash.startsWith("#/admin");
+
+  // Electron 托盘「后台配置」等主进程导航
+  useEffect(() => {
+    const api = window.desktopApi;
+    if (!api?.onNavigate) return;
+    return api.onNavigate((nextHash) => {
+      window.location.hash = nextHash;
+    });
+  }, []);
 
   return (
     <ConfigProvider theme={dashboardTheme}>

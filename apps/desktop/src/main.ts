@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import isDev from "electron-is-dev";
@@ -21,6 +21,16 @@ function prodIndexHtmlPath() {
   return path.join(__dirname, "..", "..", "web", "dist", "index.html");
 }
 
+/** 托盘图标：开发与打包均相对 dist 上一级的 build/icon.png（已列入 electron-builder files） */
+function trayIconPath() {
+  return path.join(__dirname, "..", "build", "icon.png");
+}
+
+let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
+/** 用户显式退出（托盘「退出」/ Cmd+Q）时为 true，此时允许真正关闭窗口 */
+let isQuitting = false;
+
 function attachDebugHandlers(win: BrowserWindow, indexPath: string) {
   const wc = win.webContents;
   if (isWallpaperDebug()) {
@@ -37,7 +47,6 @@ function attachDebugHandlers(win: BrowserWindow, indexPath: string) {
     console.error("[main] did-fail-provisional-load", { code, desc, url });
   });
 
-  // 仅在调试时打印，避免用户从终端启动时泄露过多信息
   if (isWallpaperDebug()) {
     console.log("[main] isPackaged:", app.isPackaged);
     console.log("[main] __dirname:", __dirname);
@@ -49,17 +58,117 @@ function attachDebugHandlers(win: BrowserWindow, indexPath: string) {
   }
 }
 
+function showMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+    return;
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+  if (process.platform === "darwin" && app.dock) {
+    app.dock.show();
+  }
+}
+
+function hideMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isFullScreen()) {
+    mainWindow.setFullScreen(false);
+    // 等退出全屏动画后再隐藏，避免 macOS 闪烁
+    mainWindow.once("leave-full-screen", () => {
+      if (!isQuitting && mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.hide();
+      }
+    });
+    // 保险：若事件未触发仍隐藏
+    setTimeout(() => {
+      if (!isQuitting && mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+        mainWindow.hide();
+      }
+    }, 800);
+    return;
+  }
+  mainWindow.hide();
+}
+
+function createTray() {
+  if (tray) return;
+
+  const iconFile = trayIconPath();
+  let image = nativeImage.createFromPath(iconFile);
+  if (image.isEmpty()) {
+    console.warn("[main] tray icon missing or empty:", iconFile);
+    image = nativeImage.createEmpty();
+  } else {
+    image = image.resize({ width: 16, height: 16 });
+  }
+
+  tray = new Tray(image);
+  tray.setToolTip("WallpaperScreensaver");
+  tray.on("double-click", () => showMainWindow());
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "显示窗口",
+      click: () => showMainWindow()
+    },
+    {
+      label: "后台配置",
+      click: () => {
+        showMainWindow();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
+          mainWindow.webContents.send("desktop:navigate", "#/admin");
+        }
+      }
+    },
+    { type: "separator" },
+    {
+      label: "退出",
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      }
+    }
+  ]);
+  tray.setContextMenu(contextMenu);
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
     backgroundColor: "#111827",
     autoHideMenuBar: true,
+    fullscreenable: true,
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false
     }
+  });
+
+  mainWindow = win;
+
+  // 点关闭：仅隐藏窗口，进程与托盘继续运行
+  win.on("close", (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      hideMainWindow();
+    }
+  });
+
+  win.on("closed", () => {
+    if (mainWindow === win) mainWindow = null;
+  });
+
+  win.on("enter-full-screen", () => {
+    win.webContents.send("desktop:fullscreen-changed", true);
+  });
+  win.on("leave-full-screen", () => {
+    win.webContents.send("desktop:fullscreen-changed", false);
   });
 
   if (isDev) {
@@ -78,18 +187,55 @@ function createWindow() {
   win.loadFile(indexPath);
 }
 
-app.whenReady().then(() => {
-  createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+function registerIpc() {
+  ipcMain.handle("desktop:set-fullscreen", (_event, flag: boolean) => {
+    const win = mainWindow;
+    if (!win || win.isDestroyed()) return false;
+    win.setFullScreen(Boolean(flag));
+    return win.isFullScreen();
   });
-});
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
+  ipcMain.handle("desktop:is-fullscreen", () => {
+    const win = mainWindow;
+    if (!win || win.isDestroyed()) return false;
+    return win.isFullScreen();
+  });
+
+  ipcMain.handle("desktop:hide-window", () => {
+    hideMainWindow();
+  });
+}
+
+// 单实例：再次启动时唤起已有窗口（Windows 托盘常驻场景）
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    showMainWindow();
+  });
+
+  app.whenReady().then(() => {
+    if (process.platform === "win32") {
+      app.setAppUserModelId("com.wallpaper.screensaver");
+    }
+
+    registerIpc();
+    createTray();
+    createWindow();
+
+    app.on("activate", () => {
+      // macOS：点击 Dock 图标时显示窗口
+      showMainWindow();
+    });
+  });
+
+  app.on("before-quit", () => {
+    isQuitting = true;
+  });
+
+  // 有托盘时常驻：任意平台都不要因「无窗口」而退出
+  app.on("window-all-closed", () => {
+    // no-op：关闭窗口后由托盘保活；显式退出走 before-quit + app.quit()
+  });
+}

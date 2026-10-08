@@ -33,7 +33,8 @@
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "files": [
       "dist/**/*",
-      "package.json"
+      "package.json",
+      "build/icon.png"
     ],
     "extraResources": [
       {

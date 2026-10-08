@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Card, Space, Typography } from "antd";
 import AppShell from "../components/AppShell";
 import SettingsGear from "../components/SettingsGear";
@@ -15,6 +15,37 @@ import {
 /** 屏保页：仅做展示，所有计算来源于唯一配置源（localStorage），与后台配置实时同步 */
 export default function ScreensaverPage() {
   const now = useNow();
+
+  // Electron：屏保页进入系统级真全屏；Esc 关闭到托盘；从托盘再次显示时重新全屏
+  useEffect(() => {
+    const api = window.desktopApi;
+    if (!api?.setFullscreen) return;
+
+    const enter = () => {
+      void api.setFullscreen(true);
+    };
+    enter();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        void api.hideWindow();
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") enter();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("visibilitychange", onVisibility);
+      void api.setFullscreen(false);
+    };
+  }, []);
+
   const { config } = useRetirementConfig();
 
   const imageUrls = useScreensaverImages(config.images);
