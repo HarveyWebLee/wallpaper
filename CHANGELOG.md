@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/HarveyWebLee/wallpaper/compare/v1.0.3...v1.1.0) (2026-10-08)
+
+
+### Bug Fixes
+
+* **web:** 修正顶栏时钟区继承行高导致副标题与日期被裁切 ([73ec3ee](https://github.com/HarveyWebLee/wallpaper/commit/73ec3ee6547e9ae223c36c92ad32136ef2f9eeaa))
+
+
+### Features
+
+* **web:** 优化大屏观感并新增实时时钟与人生进度条 ([118f3c3](https://github.com/HarveyWebLee/wallpaper/commit/118f3c302a078737695134699aafe51966a8c319))
+* **web:** 新增图片上传屏保，支持多图自动轮播 ([194739b](https://github.com/HarveyWebLee/wallpaper/commit/194739bb7bbf0098512e32063b8e944b22f8f6e9))
+
 ## [1.0.3](https://github.com/HarveyWebLee/wallpaper/compare/v1.0.2...v1.0.3) (2026-04-03)
 
 
