@@ -1,5 +1,6 @@
-# 在推送到 main 且存在可发布提交（feat/fix/perf 等）时：
-# 自动 bump 版本、同步各包 package.json、写入 CHANGELOG、构建 DMG、创建 GitHub Release 并上传产物。
+# 推送到 main 且存在可发布提交（feat/fix/perf 等）时：
+# 1) release 任务：semantic-release 计算版本、同步各包 version、写 CHANGELOG、打 tag、创建 GitHub Release
+# 2) package 任务：按 tag 在 macOS / Windows / Linux 上分别打包安装包并作为 Release 资产上传
 name: Release
 
 on:
@@ -18,18 +19,17 @@ concurrency:
 
 jobs:
   release:
-    # 桌面 DMG 需在 macOS 上构建；与本地 pnpm run package:desktop 行为一致
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.result.outputs.published }}
+      tag: ${{ steps.result.outputs.tag }}
     steps:
-      # v5+ 以 Node 24 为 Action 运行时，避免仍标为 node20 时的弃用告警
-      # @see https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: true
 
-      # 不在这里写 version：与根 package.json 的 packageManager（pnpm@10.0.0）二选一会触发 ERR_PNPM_BAD_PM_VERSION
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
 
@@ -51,3 +51,80 @@ jobs:
           # 避免 release 提交触发 husky 等与 CI 无关的钩子
           HUSKY: "0"
         run: pnpm exec semantic-release
+
+      - name: Resolve release result
+        id: result
+        run: |
+          TAG="$(git tag --points-at HEAD | head -n1)"
+          if [ -n "$TAG" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "本次发布: $TAG"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "本次无可发布提交，跳过打包。"
+          fi
+
+  package:
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: "--mac"
+            pattern: "apps/desktop/release/*.dmg"
+          - os: windows-latest
+            platform: "--win"
+            pattern: "apps/desktop/release/*.exe"
+          - os: ubuntu-latest
+            platform: "--linux"
+            pattern: |
+              apps/desktop/release/*.AppImage
+              apps/desktop/release/*.deb
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Package desktop
+        run: pnpm --filter @wallpaper/desktop exec electron-builder ${{ matrix.platform }} --publish never
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS 代码签名 + 公证（未配置 Secrets 时自动跳过，产出未签名安装包）
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Windows 代码签名（未配置时自动跳过）
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Upload installers to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release.outputs.tag }}
+          files: ${{ matrix.pattern }}
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

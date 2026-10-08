@@ -1,10 +1,18 @@
 /* 翻牌：布局与 flip-row / flip-unit（页面级） + ch-flap-*（单格 Clockhub 式 3D） */
 .flip-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: clamp(12px, 2.2vw, 26px) clamp(14px, 2.4vw, 32px);
+  flex-wrap: nowrap;
+  gap: clamp(10px, 1.5vw, 22px) clamp(10px, 1.4vw, 24px);
   justify-content: center;
   align-items: flex-end;
+}
+
+/* 窄屏（如竖屏或小窗）优雅换行，避免单元被压缩变形 */
+@media (max-width: 900px) {
+  .flip-row {
+    flex-wrap: wrap;
+    gap: clamp(12px, 2.2vw, 26px) clamp(14px, 2.4vw, 32px);
+  }
 }
 
 .flip-unit {

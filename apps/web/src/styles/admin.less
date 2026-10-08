@@ -1,0 +1,367 @@
+/* ========== 配置 / 展示 分离：后台配置页 + 导航入口 ========== */
+
+/* 顶栏右侧「返回屏保」胶囊链接 */
+.dash-nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(226, 232, 240, 0.92);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    color: #fff;
+    border-color: rgba(45, 212, 191, 0.5);
+    box-shadow: 0 0 18px rgba(45, 212, 191, 0.18);
+    transform: translateY(-1px);
+  }
+}
+
+/* 屏保页右下角隐蔽设置入口 */
+.settings-gear {
+  position: fixed;
+  right: clamp(16px, 2vw, 28px);
+  bottom: clamp(16px, 2vw, 28px);
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: rgba(203, 213, 225, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &:hover {
+    color: #fff;
+    border-color: rgba(45, 212, 191, 0.5);
+    box-shadow: 0 0 22px rgba(45, 212, 191, 0.22);
+    transform: rotate(40deg);
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+/* 屏保页无配置时的提示文案 */
+.dash-hero__hint {
+  position: relative;
+  z-index: 1;
+  display: block;
+  text-align: center;
+  font-size: clamp(14px, 1.4vw, 18px);
+}
+
+.dash-hero__link {
+  margin: 0 4px;
+  font-weight: 700;
+  color: var(--dash-teal);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.5);
+
+  &:hover {
+    color: var(--dash-cyan);
+    border-bottom-color: rgba(56, 189, 248, 0.7);
+  }
+}
+
+/* ---------- 后台配置页布局 ---------- */
+.admin-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(20px, 5vh, 64px) clamp(16px, 4vw, 48px);
+  overflow: auto;
+}
+
+.admin-card.ant-card {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  background: linear-gradient(
+    145deg,
+    rgba(15, 23, 42, 0.82) 0%,
+    rgba(15, 23, 42, 0.62) 48%,
+    rgba(30, 41, 59, 0.5) 100%
+  );
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.08) inset,
+    0 24px 64px rgba(0, 0, 0, 0.45);
+  animation: cardFadeIn 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.admin-card .ant-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.4vh, 26px);
+  padding: clamp(22px, 3vw, 36px) !important;
+}
+
+.admin-field {
+  width: 100%;
+}
+
+/* 退休年龄输入：对齐日期控件的暗色玻璃风 */
+.admin-age-input.ant-input-number {
+  min-height: 48px;
+  border-radius: 16px !important;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.72)) !important;
+  border: 1px solid rgba(56, 189, 248, 0.22) !important;
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.08) inset,
+    0 8px 28px rgba(0, 0, 0, 0.38) !important;
+  overflow: hidden;
+
+  .ant-input-number-input {
+    height: 46px;
+    font-weight: 700;
+    font-size: 16px;
+    color: rgba(226, 232, 240, 0.96);
+  }
+
+  &:hover,
+  &.ant-input-number-focused {
+    border-color: rgba(45, 212, 191, 0.45) !important;
+  }
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.admin-btn.ant-btn {
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- 后台图片管理 ---------- */
+.admin-images {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-images__count {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+/* 上传拖拽区：虚线玻璃面板 */
+.admin-dropzone.ant-upload-wrapper .ant-upload-drag {
+  border-radius: 16px;
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.68), rgba(30, 41, 59, 0.5));
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.admin-dropzone.ant-upload-wrapper .ant-upload-drag:hover {
+  border-color: rgba(45, 212, 191, 0.6);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.58));
+  box-shadow: 0 0 22px rgba(45, 212, 191, 0.14);
+}
+
+.admin-dropzone__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 22px 16px;
+  color: rgba(203, 213, 225, 0.85);
+}
+
+.admin-dropzone__inner svg {
+  color: var(--dash-teal, #2dd4bf);
+}
+
+.admin-dropzone__title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.admin-dropzone__hint {
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.admin-dropzone--disabled {
+  padding: 20px 16px;
+  text-align: center;
+  border-radius: 16px;
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.5);
+  color: rgba(148, 163, 184, 0.8);
+  font-size: 13px;
+}
+
+.admin-images__error {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fca5a5;
+}
+
+/* 缩略图网格 */
+.admin-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 12px;
+}
+
+.admin-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3) inset,
+    0 8px 22px rgba(0, 0, 0, 0.32);
+}
+
+.admin-thumb__img {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(30, 41, 59, 0.6);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.admin-thumb__badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #042f2e;
+  background: linear-gradient(180deg, #2dd4bf, #14b8a6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.admin-thumb__bar {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 6px;
+  background: linear-gradient(0deg, rgba(2, 6, 23, 0.7), transparent);
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.admin-thumb:hover .admin-thumb__bar {
+  opacity: 1;
+}
+
+.admin-thumb__btn {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.78);
+  color: rgba(226, 232, 240, 0.95);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(45, 212, 191, 0.5);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.admin-thumb__btn--danger:hover:not(:disabled) {
+  border-color: rgba(248, 113, 113, 0.7);
+  color: #fecaca;
+}
+
+/* 轮播设置行 */
+.admin-carousel-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(56, 189, 248, 0.14);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.admin-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-setting__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.admin-interval-input.ant-input-number {
+  width: 140px;
+}

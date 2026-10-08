@@ -24,14 +24,30 @@ pnpm run build
 
 ## 2. 桌面端打包
 
+本机（按当前操作系统默认目标）：
+
 ```bash
 pnpm run package:desktop
+```
+
+指定平台（需在对应系统或具备交叉工具链的环境执行）：
+
+```bash
+# macOS（.dmg）
+pnpm --filter @wallpaper/desktop exec electron-builder --mac --publish never
+# Windows（.exe / NSIS）
+pnpm --filter @wallpaper/desktop exec electron-builder --win --publish never
+# Linux（.AppImage + .deb；.deb 需系统具备 fakeroot/dpkg）
+pnpm --filter @wallpaper/desktop exec electron-builder --linux --publish never
 ```
 
 产物目录：`apps/desktop/release`
 
 - macOS：`.dmg`
-- Windows：`.exe`（NSIS）
+- Windows：`.exe`（NSIS，支持自定义安装目录）
+- Linux：`.AppImage`（便携，赋可执行权限即可运行）与 `.deb`（`sudo dpkg -i` 安装到 `/opt`，并注册 `wallpaper-screensaver` 命令、桌面入口与图标）
+
+应用图标源文件为 `apps/desktop/build/icon.svg`，栅格化产物 `apps/desktop/build/icon.png`（1024×1024）。各平台图标（icns/ico/png）由 electron-builder 自动从该 PNG 生成。
 
 ## 3. CI 建议步骤
 
@@ -59,19 +75,38 @@ pnpm run package:desktop
 
 ## 5. 发布注意事项
 
-- Windows 打包建议在 Windows Runner 执行，macOS 打包建议在 macOS Runner 执行。
-- 如涉及签名与公证，请在 CI 中注入对应证书与密钥环境变量。
+- 各平台安装包建议在对应系统的 Runner 上构建（CI 已按此配置矩阵）。
+- 代码签名与公证通过 **环境变量 / GitHub Secrets** 注入；**未配置时自动跳过**，仅产出未签名安装包，CI 不会因此失败。
+
+| Secret                        | 平台    | 用途                                                                   |
+| ----------------------------- | ------- | ---------------------------------------------------------------------- |
+| `MAC_CSC_LINK`                | macOS   | Developer ID 证书（base64 或路径），映射到 electron-builder `CSC_LINK` |
+| `MAC_CSC_KEY_PASSWORD`        | macOS   | 证书密码，映射到 `CSC_KEY_PASSWORD`                                    |
+| `APPLE_ID`                    | macOS   | 公证所用 Apple 账号                                                    |
+| `APPLE_APP_SPECIFIC_PASSWORD` | macOS   | App 专用密码                                                           |
+| `APPLE_TEAM_ID`               | macOS   | 开发者团队 ID                                                          |
+| `WIN_CSC_LINK`                | Windows | 代码签名证书（base64 或路径）                                          |
+| `WIN_CSC_KEY_PASSWORD`        | Windows | 证书密码                                                               |
+
+公证逻辑见 `apps/desktop/build/notarize.cjs`（electron-builder `afterSign` 钩子）：仅在 macOS 且检测到上述 Apple 凭据时执行 `notarytool` 提交与 `stapler` 装订，否则跳过。hardened runtime 与 entitlements 见 `apps/desktop/build/entitlements.mac.plist`。
 
 ## 6. 自动化版本与 GitHub Release
 
-默认分支 **`main`** 在推送后，由 [GitHub Actions](https://github.com/HarveyWebLee/wallpaper/actions) 中的 **Release** 工作流执行：
+默认分支 **`main`** 在推送后，由 [GitHub Actions](https://github.com/HarveyWebLee/wallpaper/actions) 中的 **Release** 工作流执行，分为两个阶段：
+
+**`release` 任务（`ubuntu-latest`）**
 
 1. **质量门禁**：`lint` / `typecheck` / `format:check`
 2. **semantic-release**：根据自上次 tag 以来的 [约定式提交](https://www.conventionalcommits.org/en/v1.0.0/)（如 `feat:` / `fix:` / `perf:`，与 Angular 规范一致）计算下一版本；`chore` / `docs` / `test` 等默认 **不触发** 新版本
 3. **版本同步**：`scripts/sync-workspace-version.mjs` 将版本号写入根目录与 `apps/web`、`apps/server`、`apps/desktop` 的 `package.json`
-4. **打包**：`pnpm run package:desktop` 生成 DMG
-5. **Git 提交与 tag**：附带 `CHANGELOG.md` 的 `chore(release): x.y.z` 提交与对应 tag
-6. **GitHub Releases**：创建 Release 并上传 `apps/desktop/release/*.dmg`（当前 Runner 为 `macos-latest`，产物为对应架构的 macOS 安装包）
+4. **Git 提交与 tag**：附带 `CHANGELOG.md` 的 `chore(release): x.y.z` 提交与对应 tag
+5. **GitHub Releases**：创建对应 Release（此阶段不含安装包资产），并输出 `tag` 与 `published` 供下一阶段使用
+
+**`package` 任务（矩阵：`macos-latest` / `windows-latest` / `ubuntu-latest`，仅在本次确有发布时运行）**
+
+6. 检出该 tag → `pnpm install` → `pnpm run build` → `electron-builder --mac|--win|--linux` 分别产出 **DMG / NSIS exe / AppImage + deb**
+7. 通过 `softprops/action-gh-release` 将各平台安装包作为资产上传到同一个 Release
+8. 签名/公证所需 Secrets 见 [第 5 节](#5-发布注意事项)；未配置时产出未签名安装包
 
 本地模拟（不推 tag、不写仓库）需可访问 GitHub API 校验权限，请先导出 **Fine-grained 或 classic PAT**（具备 Contents、Metadata 等 Release 所需权限）：
 
@@ -80,7 +115,7 @@ export GH_TOKEN=ghp_xxxx   # 或 GITHUB_TOKEN
 pnpm run release:dry-run
 ```
 
-若需 Windows 安装包，可另增 `runs-on: windows-latest` 的打包任务并上传到同一 Release（可用 `softprops/action-gh-release` 等按 tag 附加资产）。
+> 上述 `package` 矩阵已内置 macOS / Windows / Linux 三端打包与资产上传，无需再单独新增任务。
 
 ## 7. macOS「已损坏，无法打开」与分发
 

@@ -28,9 +28,9 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        // 先 bump 各包 version，再打包（electron-builder 读取 apps/desktop/package.json 版本）
+        // 仅同步各包 version；桌面端安装包由 CI 的跨平台打包矩阵（见 release.yml 的 package 任务）构建并上传
         prepareCmd:
-          "node scripts/sync-workspace-version.mjs ${nextRelease.version} && pnpm run package:desktop",
+          "node scripts/sync-workspace-version.mjs ${nextRelease.version}",
       },
     ],
     [
@@ -47,11 +47,7 @@ module.exports = {
           "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}",
       },
     ],
-    [
-      "@semantic-release/github",
-      {
-        assets: [{ path: "apps/desktop/release/*.dmg", label: "macOS (DMG)" }],
-      },
-    ],
+    // 创建 GitHub Release（版本/变更日志）；各平台安装包由 release.yml 的 package 任务按 tag 附加为资产
+    "@semantic-release/github",
   ],
 };

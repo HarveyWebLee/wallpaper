@@ -34,11 +34,16 @@ pnpm run dev
 pnpm run build
 ```
 
-4. 打包桌面安装包（mac/win）
+4. 打包桌面安装包（macOS DMG / Windows NSIS / Linux AppImage+deb）
 
 ```bash
+# 按当前系统默认目标打包
 pnpm run package:desktop
+# 或指定平台（需对应系统）：--mac / --win / --linux
+pnpm --filter @wallpaper/desktop exec electron-builder --linux --publish never
 ```
+
+产物在 `apps/desktop/release`。Linux 下 `.deb` 可 `sudo dpkg -i` 安装，或直接运行 `.AppImage`。签名/公证与跨平台 CI 见 [运维部署文档](./docs/deployment.md)。
 
 ## macOS：安装后提示「已损坏，无法打开」
 
