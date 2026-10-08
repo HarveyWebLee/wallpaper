@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dayjs, { type Dayjs } from "dayjs";
-import { loadConfig, saveConfig, subscribeConfig, type RetirementConfig } from "./lib/config";
+import {
+  loadConfig,
+  saveConfig,
+  subscribeConfig,
+  type RetirementConfig,
+  type ScreensaverImage
+} from "./lib/config";
+import { getImage } from "./lib/imageStore";
 
 /** 每 intervalMs 刷新一次的「当前时刻」，驱动倒计时、进度与顶栏时钟 */
 export function useNow(intervalMs = 1000): Dayjs {
@@ -34,6 +41,54 @@ export function useRetirementConfig(): { config: RetirementConfig; setConfig: Se
   }, []);
 
   return { config, setConfig };
+}
+
+/**
+ * 按配置中的图片元数据，从 IndexedDB 加载 blob 并生成有序 object URL。
+ * 仅在图片集合（id 序列）变化时重建，并在替换/卸载后回收旧 URL 避免内存泄漏。
+ */
+export function useScreensaverImages(images: ScreensaverImage[]): string[] {
+  const ids = images.map((image) => image.id).join("|");
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+  const urlsRef = useRef<string[]>([]);
+  const [urls, setUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      const result: string[] = [];
+      for (const image of imagesRef.current) {
+        try {
+          const blob = await getImage(image.id);
+          if (blob) result.push(URL.createObjectURL(blob));
+        } catch {
+          // 单张加载失败不影响其余图片
+        }
+      }
+      if (!active) {
+        result.forEach((url) => URL.revokeObjectURL(url));
+        return;
+      }
+      const previous = urlsRef.current;
+      urlsRef.current = result;
+      setUrls(result);
+      // 新 URL 就绪后再回收旧 URL，避免轮播出现破图闪烁
+      previous.forEach((url) => URL.revokeObjectURL(url));
+    };
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [ids]);
+
+  useEffect(() => {
+    return () => {
+      urlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  return urls;
 }
 
 /** 极简 hash 路由：在 file:// 下可靠，无需引入额外依赖（适配 Electron 打包） */

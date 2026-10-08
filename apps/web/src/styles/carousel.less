@@ -1,0 +1,82 @@
+/* ========== 屏保图片轮播：Ken Burns + 交叉淡入 ========== */
+.carousel {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #020617;
+}
+
+.carousel__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-image: var(--carousel-img);
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 1.2s ease-in-out;
+  will-change: opacity, transform;
+}
+
+.carousel--cover .carousel__slide {
+  background-size: cover;
+}
+
+/* contain：图片完整显示，背后用同图的模糊放大版填满留白，画面更高级不留黑边 */
+.carousel--contain .carousel__slide {
+  background-size: contain;
+}
+
+.carousel--contain .carousel__slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--carousel-img);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: blur(34px) brightness(0.55) saturate(1.1);
+  transform: scale(1.18);
+}
+
+.carousel__slide.is-active {
+  opacity: 1;
+  animation-name: carouselKenBurns;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+/* 边缘与上下轻微压暗，保证叠加的倒计时内容可读 */
+.carousel__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 85% at 50% 50%, transparent 42%, rgba(2, 6, 23, 0.42) 100%),
+    linear-gradient(
+      180deg,
+      rgba(2, 6, 23, 0.5) 0%,
+      rgba(2, 6, 23, 0.1) 22%,
+      rgba(2, 6, 23, 0.16) 68%,
+      rgba(2, 6, 23, 0.58) 100%
+    );
+}
+
+@keyframes carouselKenBurns {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-1.5%, -1.5%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel__slide {
+    transition: opacity 0.4s ease;
+  }
+  .carousel__slide.is-active {
+    animation: none;
+  }
+}

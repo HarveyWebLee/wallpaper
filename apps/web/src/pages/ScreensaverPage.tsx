@@ -2,8 +2,9 @@ import { useMemo } from "react";
 import { Card, Space, Typography } from "antd";
 import AppShell from "../components/AppShell";
 import SettingsGear from "../components/SettingsGear";
+import ImageCarousel from "../components/ImageCarousel";
 import { FlipCountUnit } from "../components/flip";
-import { useNow, useRetirementConfig } from "../hooks";
+import { useNow, useRetirementConfig, useScreensaverImages } from "../hooks";
 import {
   breakdownRemaining,
   computeLifeProgress,
@@ -15,6 +16,11 @@ import {
 export default function ScreensaverPage() {
   const now = useNow();
   const { config } = useRetirementConfig();
+
+  const imageUrls = useScreensaverImages(config.images);
+  const hasImages = imageUrls.length > 0;
+  /** 纯图片模式：有图片且用户关闭倒计时叠加 */
+  const photoOnly = hasImages && !config.carousel.showCountdown;
 
   const retirementDate = useMemo(() => computeRetirementDate(config), [config]);
 
@@ -42,9 +48,26 @@ export default function ScreensaverPage() {
     </div>
   );
 
+  const backdrop = hasImages ? (
+    <ImageCarousel
+      urls={imageUrls}
+      intervalMs={config.carousel.intervalMs}
+      fit={config.carousel.fit}
+    />
+  ) : undefined;
+
+  // 纯图片模式：仅沉浸展示轮播，保留右下角设置入口
+  if (photoOnly) {
+    return (
+      <AppShell backdrop={backdrop} immersive hideHeader>
+        <SettingsGear />
+      </AppShell>
+    );
+  }
+
   return (
-    <AppShell headerExtra={headerExtra}>
-      <Card className="main-card" bordered={false}>
+    <AppShell headerExtra={headerExtra} backdrop={backdrop} immersive={hasImages}>
+      <Card className={`main-card${hasImages ? " main-card--immersive" : ""}`} bordered={false}>
         <Space className="dash-stack" orientation="vertical" size={28} style={{ width: "100%" }}>
           <Card
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"

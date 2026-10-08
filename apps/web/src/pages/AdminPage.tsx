@@ -2,9 +2,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Card, DatePicker, InputNumber, Tag, Typography } from "antd";
 import type { Dayjs } from "dayjs";
 import AppShell from "../components/AppShell";
+import ScreensaverImageManager from "../components/ScreensaverImageManager";
 import { useNow, useRetirementConfig } from "../hooks";
-import { DEFAULT_CONFIG, RETIREMENT_AGE_MAX, RETIREMENT_AGE_MIN } from "../lib/config";
+import {
+  DEFAULT_CONFIG,
+  MAX_IMAGES,
+  MAX_IMAGE_BYTES,
+  MAX_IMAGE_MB,
+  RETIREMENT_AGE_MAX,
+  RETIREMENT_AGE_MIN,
+  type CarouselConfig,
+  type ScreensaverImage
+} from "../lib/config";
 import { computeLifeProgress, computeRetirementDate, toBirthday } from "../lib/compute";
+import { deleteImage, genImageId, putImage } from "../lib/imageStore";
 
 /** 后台配置页：唯一写入配置源的入口，修改即时保存并同步到屏保页 */
 export default function AdminPage() {
@@ -14,6 +25,8 @@ export default function AdminPage() {
   const birthday = useMemo(() => toBirthday(config), [config]);
   const retirementDate = useMemo(() => computeRetirementDate(config), [config]);
   const lifeProgress = useMemo(() => computeLifeProgress(now, config), [now, config]);
+
+  const [imageError, setImageError] = useState<string | null>(null);
 
   /** 与触发器同宽：下拉挂载在 body，须用测量值同步 popupStyle */
   const birthBlockRef = useRef<HTMLDivElement>(null);
@@ -38,7 +51,71 @@ export default function AdminPage() {
     setConfig((prev) => ({ ...prev, retirementAge: value }));
   };
 
-  const handleReset = () => setConfig({ ...DEFAULT_CONFIG });
+  // 重置仅恢复出生日期与退休年龄，保留已上传图片，避免误删与孤儿 blob
+  const handleReset = () =>
+    setConfig((prev) => ({
+      ...prev,
+      birthday: DEFAULT_CONFIG.birthday,
+      retirementAge: DEFAULT_CONFIG.retirementAge
+    }));
+
+  const addFiles = async (files: File[]) => {
+    setImageError(null);
+    const remaining = MAX_IMAGES - config.images.length;
+    if (remaining <= 0) {
+      setImageError(`最多可添加 ${MAX_IMAGES} 张图片`);
+      return;
+    }
+    for (const file of files.slice(0, remaining)) {
+      if (!file.type.startsWith("image/")) {
+        setImageError("仅支持图片文件");
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        setImageError(`单张图片需小于 ${MAX_IMAGE_MB}MB`);
+        continue;
+      }
+      const id = genImageId();
+      try {
+        await putImage(id, file);
+      } catch {
+        setImageError("图片保存失败，请重试");
+        continue;
+      }
+      const meta: ScreensaverImage = {
+        id,
+        name: file.name,
+        type: file.type,
+        addedAt: Date.now()
+      };
+      setConfig((prev) => ({ ...prev, images: [...prev.images, meta] }));
+    }
+  };
+
+  const removeImage = async (id: string) => {
+    setConfig((prev) => ({ ...prev, images: prev.images.filter((image) => image.id !== id) }));
+    try {
+      await deleteImage(id);
+    } catch {
+      // 元数据已移除；残留 blob 可忽略，不影响展示
+    }
+  };
+
+  const moveImage = (id: string, dir: -1 | 1) => {
+    setConfig((prev) => {
+      const index = prev.images.findIndex((image) => image.id === id);
+      const target = index + dir;
+      if (index < 0 || target < 0 || target >= prev.images.length) return prev;
+      const next = [...prev.images];
+      const [moved] = next.splice(index, 1);
+      next.splice(target, 0, moved);
+      return { ...prev, images: next };
+    });
+  };
+
+  const changeCarousel = (patch: Partial<CarouselConfig>) => {
+    setConfig((prev) => ({ ...prev, carousel: { ...prev.carousel, ...patch } }));
+  };
 
   const headerExtra = (
     <a className="dash-nav-link" href="#/">
@@ -100,6 +177,16 @@ export default function AdminPage() {
               style={{ width: "100%", marginTop: 8 }}
             />
           </div>
+
+          <ScreensaverImageManager
+            images={config.images}
+            carousel={config.carousel}
+            error={imageError}
+            onAddFiles={addFiles}
+            onRemove={removeImage}
+            onMove={moveImage}
+            onCarouselChange={changeCarousel}
+          />
 
           <Card
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"
