@@ -27,8 +27,10 @@
     "publish": null,
     "npmRebuild": false,
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
     "files": [
       "dist/**/*",
       "package.json"
@@ -42,15 +44,42 @@
         ]
       }
     ],
+    "afterSign": "build/notarize.cjs",
     "mac": {
       "target": [
         "dmg"
-      ]
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "executableName": "wallpaper-screensaver",
+      "category": "Utility",
+      "icon": "build/icon.png",
+      "maintainer": "HarveyWebLee <noreply@users.noreply.github.com>",
+      "synopsis": "退休倒计时桌面屏保",
+      "description": "展示退休倒计时的桌面屏保，支持自定义出生日期/退休年龄与图片轮播。"
     }
   },
   "dependencies": {
