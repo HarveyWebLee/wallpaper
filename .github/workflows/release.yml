@@ -106,19 +106,42 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # 仅在对应 Secret 非空时注入签名/公证环境变量；
+      # 否则不设置，避免 electron-builder 把空的 CSC_LINK 当作证书路径（macOS 会报错）
+      - name: Prepare signing env
+        shell: bash
+        env:
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          emit() {
+            if [ -n "${!1:-}" ]; then
+              {
+                echo "$2<<__WP_EOF__"
+                printf '%s\n' "${!1}"
+                echo "__WP_EOF__"
+              } >> "$GITHUB_ENV"
+            fi
+          }
+          emit MAC_CSC_LINK CSC_LINK
+          emit MAC_CSC_KEY_PASSWORD CSC_KEY_PASSWORD
+          emit APPLE_ID APPLE_ID
+          emit APPLE_APP_SPECIFIC_PASSWORD APPLE_APP_SPECIFIC_PASSWORD
+          emit APPLE_TEAM_ID APPLE_TEAM_ID
+          emit WIN_CSC_LINK WIN_CSC_LINK
+          emit WIN_CSC_KEY_PASSWORD WIN_CSC_KEY_PASSWORD
+
       - name: Package desktop
         run: pnpm --filter @wallpaper/desktop exec electron-builder ${{ matrix.platform }} --publish never
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # macOS 代码签名 + 公证（未配置 Secrets 时自动跳过，产出未签名安装包）
-          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # Windows 代码签名（未配置时自动跳过）
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          # 无 macOS 证书时关闭身份自动发现，走 ad-hoc 签名产出未签名 DMG（有证书时经上一步注入并正常签名）
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload installers to release
         uses: softprops/action-gh-release@v2
