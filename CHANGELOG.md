@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/HarveyWebLee/wallpaper/compare/v1.1.0...v1.2.0) (2026-10-08)
+
+
+### Features
+
+* **desktop:** 新增托盘功能与全屏控制，优化用户体验 ([2c5437f](https://github.com/HarveyWebLee/wallpaper/commit/2c5437f9ad4fa4e7d949948bea6ce2e2fd3a74a4))
+
 # [1.1.0](https://github.com/HarveyWebLee/wallpaper/compare/v1.0.3...v1.1.0) (2026-10-08)
 
 
