@@ -30,11 +30,21 @@
 }
 
 /* 屏保页右下角隐蔽设置入口 */
-.settings-gear {
+/* 右下角热区：固定贴角的触发范围，鼠标移入才显露设置入口，平时不占视觉 */
+.settings-gear-zone {
   position: fixed;
-  right: clamp(16px, 2vw, 28px);
-  bottom: clamp(16px, 2vw, 28px);
+  right: 0;
+  bottom: 0;
   z-index: 40;
+  width: clamp(104px, 12vw, 168px);
+  height: clamp(104px, 12vw, 168px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: clamp(16px, 2vw, 28px);
+}
+
+.settings-gear {
   width: 44px;
   height: 44px;
   display: grid;
@@ -45,22 +55,37 @@
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(12px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  /* 默认隐藏：淡出并下沉，且不可点击，避免遮挡画面与误触 */
+  opacity: 0;
+  transform: translateY(10px) scale(0.92);
+  pointer-events: none;
   transition:
+    opacity 0.28s ease,
     color 0.2s ease,
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-
-  &:hover {
-    color: #fff;
-    border-color: rgba(45, 212, 191, 0.5);
-    box-shadow: 0 0 22px rgba(45, 212, 191, 0.22);
-    transform: rotate(40deg);
-  }
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 
   svg {
     display: block;
   }
+}
+
+/* 鼠标移入右下角热区，或入口获得键盘焦点时显露齿轮 */
+.settings-gear-zone:hover .settings-gear,
+.settings-gear:focus-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* 显露后再悬停齿轮本身：高亮并旋转，保留原有趣味反馈 */
+.settings-gear-zone:hover .settings-gear:hover,
+.settings-gear:focus-visible:hover {
+  color: #fff;
+  border-color: rgba(45, 212, 191, 0.5);
+  box-shadow: 0 0 22px rgba(45, 212, 191, 0.22);
+  transform: rotate(40deg);
 }
 
 /* 屏保页无配置时的提示文案 */
