@@ -1,6 +1,6 @@
 {
   "name": "wallpaper",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "description": "Desktop screensaver project with Electron + NestJS + React",
   "packageManager": "pnpm@10.0.0",

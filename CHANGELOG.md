@@ -1,3 +1,12 @@
+# [1.3.0](https://github.com/HarveyWebLee/wallpaper/compare/v1.2.0...v1.3.0) (2026-10-10)
+
+
+### Features
+
+* **web:** 取消屏保图片上传的单张体积上限 ([66d2051](https://github.com/HarveyWebLee/wallpaper/commit/66d20519b5caf7631e48ded9738143c17fde4970))
+* **web:** 右下角设置入口改为角落悬浮显露并优化定位 ([0ae2a77](https://github.com/HarveyWebLee/wallpaper/commit/0ae2a77cd9c3df539eda6be4dbc21411c05eed89))
+* 新增鼠标/快捷键快速显示隐藏屏保 ([d56af78](https://github.com/HarveyWebLee/wallpaper/commit/d56af78058b1a2e1c0ac75073680f5c1ada7189d))
+
 # [1.2.0](https://github.com/HarveyWebLee/wallpaper/compare/v1.1.0...v1.2.0) (2026-10-08)
 
 
