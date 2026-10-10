@@ -71,6 +71,17 @@ function showMainWindow() {
   }
 }
 
+/** 鼠标快捷切换：窗口可见则隐藏到托盘，否则显示并聚焦（供单击托盘图标使用） */
+function toggleMainWindow() {
+  const win = mainWindow;
+  const visible = Boolean(win && !win.isDestroyed() && win.isVisible() && !win.isMinimized());
+  if (visible) {
+    hideMainWindow();
+  } else {
+    showMainWindow();
+  }
+}
+
 function hideMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   if (mainWindow.isFullScreen()) {
@@ -106,6 +117,8 @@ function createTray() {
 
   tray = new Tray(image);
   tray.setToolTip("WallpaperScreensaver");
+  // 鼠标快捷键：单击托盘图标即可快速显示/隐藏屏保；双击保留为显示
+  tray.on("click", () => toggleMainWindow());
   tray.on("double-click", () => showMainWindow());
 
   const contextMenu = Menu.buildFromTemplate([
@@ -203,6 +216,10 @@ function registerIpc() {
 
   ipcMain.handle("desktop:hide-window", () => {
     hideMainWindow();
+  });
+
+  ipcMain.handle("desktop:toggle-window", () => {
+    toggleMainWindow();
   });
 }
 

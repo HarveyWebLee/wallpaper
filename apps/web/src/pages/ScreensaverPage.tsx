@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Card, Space, Typography } from "antd";
 import AppShell from "../components/AppShell";
 import SettingsGear from "../components/SettingsGear";
@@ -15,6 +15,51 @@ import {
 /** 屏保页：仅做展示，所有计算来源于唯一配置源（localStorage），与后台配置实时同步 */
 export default function ScreensaverPage() {
   const now = useNow();
+
+  /**
+   * 快速「显示/隐藏」屏保：
+   * - 桌面端（Electron）：隐藏窗口到托盘（再次显示由单击托盘图标完成，见主进程）；
+   * - 浏览器端：用全屏 API 近似切换沉浸屏保（进入/退出全屏），无桌面壳时也能快捷收起。
+   * 供鼠标双击与键盘快捷键共用。
+   */
+  const toggleScreensaver = useCallback(() => {
+    const api = window.desktopApi;
+    if (api?.hideWindow) {
+      void api.hideWindow();
+      return;
+    }
+    if (typeof document === "undefined") return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => {});
+    } else {
+      void document.documentElement.requestFullscreen().catch(() => {});
+    }
+  }, []);
+
+  // 鼠标双击任意空白处、或按 F 键，快速显示/隐藏屏保（避开齿轮入口等可交互元素）
+  useEffect(() => {
+    const isInteractive = (target: EventTarget | null) =>
+      target instanceof Element &&
+      target.closest("a, button, input, .ant-select, .settings-gear-zone");
+
+    const onDblClick = (event: MouseEvent) => {
+      if (isInteractive(event.target)) return;
+      toggleScreensaver();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "f" || event.key === "F") {
+        event.preventDefault();
+        toggleScreensaver();
+      }
+    };
+
+    window.addEventListener("dblclick", onDblClick);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("dblclick", onDblClick);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [toggleScreensaver]);
 
   // Electron：屏保页进入系统级真全屏；Esc 关闭到托盘；从托盘再次显示时重新全屏
   useEffect(() => {

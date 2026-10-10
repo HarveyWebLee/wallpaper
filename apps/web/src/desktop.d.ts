@@ -4,6 +4,7 @@ type DesktopApi = {
   setFullscreen: (flag: boolean) => Promise<boolean>;
   isFullscreen: () => Promise<boolean>;
   hideWindow: () => Promise<void>;
+  toggleWindow: () => Promise<void>;
   onNavigate: (handler: (hash: string) => void) => () => void;
   onFullscreenChanged: (handler: (isFullscreen: boolean) => void) => () => void;
 };

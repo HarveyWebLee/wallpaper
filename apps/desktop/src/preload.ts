@@ -7,6 +7,8 @@ export type DesktopApi = {
   isFullscreen: () => Promise<boolean>;
   /** 隐藏窗口（进程留在托盘后台） */
   hideWindow: () => Promise<void>;
+  /** 显示/隐藏窗口切换（窗口可见则隐藏，否则显示） */
+  toggleWindow: () => Promise<void>;
   /** 监听主进程导航请求（托盘「后台配置」等） */
   onNavigate: (handler: (hash: string) => void) => () => void;
   /** 监听全屏状态变化 */
@@ -18,6 +20,7 @@ const desktopApi: DesktopApi = {
   setFullscreen: (flag) => ipcRenderer.invoke("desktop:set-fullscreen", flag),
   isFullscreen: () => ipcRenderer.invoke("desktop:is-fullscreen"),
   hideWindow: () => ipcRenderer.invoke("desktop:hide-window"),
+  toggleWindow: () => ipcRenderer.invoke("desktop:toggle-window"),
   onNavigate: (handler) => {
     const listener = (_event: Electron.IpcRendererEvent, hash: string) => {
       handler(hash);
