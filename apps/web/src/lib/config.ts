@@ -41,10 +41,8 @@ export const RETIREMENT_AGE_MAX = 100;
 export const CAROUSEL_INTERVAL_MIN = 2;
 export const CAROUSEL_INTERVAL_MAX = 120;
 
-/** 图片数量与单张体积上限，避免撑爆存储与卡顿 */
+/** 图片数量上限，避免撑爆存储与卡顿（不再限制单张文件体积） */
 export const MAX_IMAGES = 30;
-export const MAX_IMAGE_MB = 8;
-export const MAX_IMAGE_BYTES = MAX_IMAGE_MB * 1024 * 1024;
 
 /** 默认出生时间与此前展示保持一致，保证老用户升级无感 */
 const DEFAULT_BIRTHDAY_ISO = dayjs("1995-06-15 08:00:00").toISOString();

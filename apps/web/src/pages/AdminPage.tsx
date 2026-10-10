@@ -7,8 +7,6 @@ import { useNow, useRetirementConfig } from "../hooks";
 import {
   DEFAULT_CONFIG,
   MAX_IMAGES,
-  MAX_IMAGE_BYTES,
-  MAX_IMAGE_MB,
   RETIREMENT_AGE_MAX,
   RETIREMENT_AGE_MIN,
   type CarouselConfig,
@@ -69,10 +67,6 @@ export default function AdminPage() {
     for (const file of files.slice(0, remaining)) {
       if (!file.type.startsWith("image/")) {
         setImageError("仅支持图片文件");
-        continue;
-      }
-      if (file.size > MAX_IMAGE_BYTES) {
-        setImageError(`单张图片需小于 ${MAX_IMAGE_MB}MB`);
         continue;
       }
       const id = genImageId();

@@ -4,7 +4,6 @@ import {
   CAROUSEL_INTERVAL_MAX,
   CAROUSEL_INTERVAL_MIN,
   MAX_IMAGES,
-  MAX_IMAGE_MB,
   type CarouselConfig,
   type ScreensaverImage
 } from "../lib/config";
@@ -68,9 +67,7 @@ export default function ScreensaverImageManager({
               />
             </svg>
             <div className="admin-dropzone__title">点击或拖拽图片到此处上传</div>
-            <div className="admin-dropzone__hint">
-              支持 JPG / PNG / WebP 等，单张 ≤ {MAX_IMAGE_MB}MB
-            </div>
+            <div className="admin-dropzone__hint">支持 JPG / PNG / WebP 等常见图片格式</div>
           </div>
         </Upload.Dragger>
       ) : (
