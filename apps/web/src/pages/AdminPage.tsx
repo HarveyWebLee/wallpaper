@@ -218,7 +218,7 @@ export default function AdminPage() {
       } else if (result.status === "unchanged") {
         message.info("在线规则包已是最新（本地缓存有效）");
       } else if (result.status === "cached_fallback") {
-        message.warning(`网络异常，已继续使用本地缓存：${result.error}`);
+        message.warning(result.error);
       } else {
         message.error(`同步失败：${result.error}`);
       }

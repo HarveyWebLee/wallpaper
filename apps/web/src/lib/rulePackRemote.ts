@@ -166,7 +166,17 @@ export async function syncRemoteRulePack(options?: {
     if (cached && cachedMeta) {
       return { status: "cached_fallback", pack: cached, meta: cachedMeta, error: message };
     }
-    return { status: "failed", error: message, cached: null };
+    // 远程暂不可用（如规则包尚未发布到 main）时，用内置包初始化在线缓存，保证离线可用
+    const builtin = getBuiltinRulePack();
+    const meta = buildMeta(builtin, sourceUrl);
+    saveOnlineCache(builtin, meta);
+    window.localStorage.setItem(AUTO_CHECK_KEY, String(Date.now()));
+    return {
+      status: "cached_fallback",
+      pack: builtin,
+      meta,
+      error: `远程拉取失败（${message}），已用内置 v${builtin.version} 初始化本地缓存`
+    };
   }
 }
 
