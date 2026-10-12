@@ -7,6 +7,7 @@ type DesktopApi = {
   toggleWindow: () => Promise<void>;
   onNavigate: (handler: (hash: string) => void) => () => void;
   onFullscreenChanged: (handler: (isFullscreen: boolean) => void) => () => void;
+  showNotification: (payload: { title: string; body: string }) => Promise<void>;
 };
 
 interface Window {

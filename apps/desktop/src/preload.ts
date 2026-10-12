@@ -13,6 +13,8 @@ export type DesktopApi = {
   onNavigate: (handler: (hash: string) => void) => () => void;
   /** 监听全屏状态变化 */
   onFullscreenChanged: (handler: (isFullscreen: boolean) => void) => () => void;
+  /** 系统通知（退休提醒等） */
+  showNotification: (payload: { title: string; body: string }) => Promise<void>;
 };
 
 const desktopApi: DesktopApi = {
@@ -38,7 +40,8 @@ const desktopApi: DesktopApi = {
     return () => {
       ipcRenderer.removeListener("desktop:fullscreen-changed", listener);
     };
-  }
+  },
+  showNotification: (payload) => ipcRenderer.invoke("desktop:show-notification", payload)
 };
 
 contextBridge.exposeInMainWorld("desktopApi", desktopApi);

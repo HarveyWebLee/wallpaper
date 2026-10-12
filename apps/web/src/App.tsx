@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import { ConfigProvider } from "antd";
-import { dashboardTheme } from "./lib/theme";
-import { useHashRoute } from "./hooks";
+import {
+  useAppearanceTheme,
+  useHashRoute,
+  useRetirementConfig,
+  useRetirementReminders,
+  useNow
+} from "./hooks";
 import ScreensaverPage from "./pages/ScreensaverPage";
 import AdminPage from "./pages/AdminPage";
 
@@ -9,6 +14,10 @@ import AdminPage from "./pages/AdminPage";
 export default function App() {
   const hash = useHashRoute();
   const isAdmin = hash.startsWith("#/admin");
+  const now = useNow(60_000);
+  const { config } = useRetirementConfig();
+  const { antTheme } = useAppearanceTheme(config.appearance.theme);
+  useRetirementReminders(config, now);
 
   // Electron 托盘「后台配置」等主进程导航
   useEffect(() => {
@@ -20,7 +29,7 @@ export default function App() {
   }, []);
 
   return (
-    <ConfigProvider theme={dashboardTheme}>
+    <ConfigProvider theme={antTheme}>
       {isAdmin ? <AdminPage /> : <ScreensaverPage />}
     </ConfigProvider>
   );

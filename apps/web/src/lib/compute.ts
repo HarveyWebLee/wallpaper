@@ -1,5 +1,5 @@
 import dayjs, { type Dayjs } from "dayjs";
-import type { RetirementConfig } from "./config";
+import { resolveEffectiveRetirementAge, type RetirementConfig } from "./config";
 
 export type RemainingBreakdown = {
   years: number;
@@ -26,11 +26,17 @@ export function toBirthday(config: RetirementConfig): Dayjs | null {
   return parsed.isValid() ? parsed : null;
 }
 
-/** 满 retirementAge 周岁的退休时刻；未设置出生时间返回 null */
+/** 满有效退休年龄的退休时刻；未设置出生时间返回 null */
 export function computeRetirementDate(config: RetirementConfig): Dayjs | null {
   const birthday = toBirthday(config);
   if (!birthday) return null;
-  return birthday.add(config.retirementAge, "year");
+  const age = resolveEffectiveRetirementAge(config);
+  return birthday.add(age, "year");
+}
+
+/** 展示用：当前配置下的有效退休年龄（周岁） */
+export function getDisplayRetirementAge(config: RetirementConfig): number {
+  return resolveEffectiveRetirementAge(config);
 }
 
 /**

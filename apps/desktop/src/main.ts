@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, Notification } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import isDev from "electron-is-dev";
@@ -221,6 +221,16 @@ function registerIpc() {
   ipcMain.handle("desktop:toggle-window", () => {
     toggleMainWindow();
   });
+
+  ipcMain.handle(
+    "desktop:show-notification",
+    (_event, payload: { title?: string; body?: string }) => {
+      if (!Notification.isSupported()) return;
+      const title = payload?.title?.trim() || "WallpaperScreensaver";
+      const body = payload?.body?.trim() || "";
+      new Notification({ title, body }).show();
+    }
+  );
 }
 
 // 单实例：再次启动时唤起已有窗口（Windows 托盘常驻场景）

@@ -8,6 +8,17 @@ import {
   type ScreensaverImage
 } from "./lib/config";
 import { getImage } from "./lib/imageStore";
+import {
+  buildReminderPayload,
+  loadFiredRecord,
+  saveFiredRecord,
+  showReminderNotification,
+  wholeDaysUntilRetirement,
+  type ReminderConfig
+} from "./lib/reminders";
+import { computeRetirementDate } from "./lib/compute";
+import { antThemeForResolved, resolveAppearanceTheme } from "./lib/theme";
+import type { ThemeConfig } from "antd";
 
 /** 每 intervalMs 刷新一次的「当前时刻」，驱动倒计时、进度与顶栏时钟 */
 export function useNow(intervalMs = 1000): Dayjs {
@@ -103,3 +114,60 @@ export function useHashRoute(): string {
   }, []);
   return hash;
 }
+
+/** 根据配置与系统偏好解析主题，并同步到 documentElement 的 data-theme */
+export function useAppearanceTheme(themeMode: RetirementConfig["appearance"]["theme"]): {
+  resolved: "dark" | "light";
+  antTheme: ThemeConfig;
+} {
+  const [resolved, setResolved] = useState(() => resolveAppearanceTheme(themeMode));
+
+  useEffect(() => {
+    const apply = () => setResolved(resolveAppearanceTheme(themeMode));
+    apply();
+    if (themeMode !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [themeMode]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = resolved;
+    return () => {
+      delete document.documentElement.dataset.theme;
+    };
+  }, [resolved]);
+
+  return { resolved, antTheme: antThemeForResolved(resolved) };
+}
+
+function runReminderTick(now: Dayjs, config: RetirementConfig): void {
+  if (!config.reminders.enabled) return;
+  const retirementDate = computeRetirementDate(config);
+  if (!retirementDate) return;
+
+  const retirementIso = retirementDate.toISOString();
+  const daysLeft = wholeDaysUntilRetirement(now, retirementDate);
+  const record = loadFiredRecord();
+  const fired = record?.retirementIso === retirementIso ? new Set(record.days) : new Set<number>();
+
+  for (const milestone of config.reminders.milestoneDays) {
+    if (daysLeft !== milestone || fired.has(milestone)) continue;
+    fired.add(milestone);
+    void showReminderNotification(buildReminderPayload(milestone, retirementDate));
+  }
+
+  saveFiredRecord({ retirementIso, days: [...fired] });
+}
+
+/** 桌面/浏览器本地退休里程碑提醒（同一退休目标各 milestone 仅一次） */
+export function useRetirementReminders(config: RetirementConfig, now: Dayjs): void {
+  const remindersRef = useRef(config.reminders);
+  remindersRef.current = config.reminders;
+
+  useEffect(() => {
+    runReminderTick(now, { ...config, reminders: remindersRef.current });
+  }, [now, config]);
+}
+
+export type { ReminderConfig };

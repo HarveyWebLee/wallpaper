@@ -668,3 +668,45 @@ body,
     opacity: 1;
   }
 }
+
+/* ========== 浅色主题（data-theme 由 useAppearanceTheme 同步） ========== */
+html[data-theme="light"],
+html[data-theme="light"] body,
+html[data-theme="light"] #root {
+  background: #f1f5f9;
+}
+
+html[data-theme="light"] .app-shell {
+  --dash-glow: rgba(14, 165, 233, 0.22);
+  --dash-panel: rgba(255, 255, 255, 0.72);
+  --dash-panel-edge: rgba(14, 165, 233, 0.18);
+  --dash-text-dim: rgba(51, 65, 85, 0.82);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(14, 165, 233, 0.1), transparent 55%),
+    radial-gradient(ellipse 90% 60% at 100% 50%, rgba(13, 148, 136, 0.08), transparent 45%),
+    linear-gradient(168deg, #f8fafc 0%, #e2e8f0 42%, #f8fafc 100%);
+}
+
+html[data-theme="light"] .app-shell__grid {
+  background-image:
+    linear-gradient(rgba(14, 165, 233, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.06) 1px, transparent 1px);
+}
+
+html[data-theme="light"] .app-shell__vignette {
+  box-shadow: inset 0 0 80px rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="light"] .dash-nav-link {
+  color: rgba(15, 23, 42, 0.88);
+  border-color: rgba(14, 165, 233, 0.28);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+html[data-theme="light"] .main-card,
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .countdown-card {
+  box-shadow:
+    0 0 0 1px rgba(14, 165, 233, 0.1),
+    0 16px 48px rgba(15, 23, 42, 0.06);
+}

@@ -9,6 +9,7 @@ import {
   breakdownRemaining,
   computeLifeProgress,
   computeRetirementDate,
+  getDisplayRetirementAge,
   pad2
 } from "../lib/compute";
 
@@ -111,6 +112,7 @@ export default function ScreensaverPage() {
   );
 
   const lifeProgress = useMemo(() => computeLifeProgress(now, config), [now, config]);
+  const displayAge = useMemo(() => getDisplayRetirementAge(config), [config]);
 
   const isRetired = Boolean(retirementDate) && remainingSeconds <= 0;
 
@@ -149,7 +151,7 @@ export default function ScreensaverPage() {
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"
             bordered={false}
           >
-            <div className="dash-panel__label">目标时刻 · 满 {config.retirementAge} 周岁</div>
+            <div className="dash-panel__label">目标时刻 · 满 {displayAge} 周岁</div>
             <Typography.Title
               className="dash-panel__value"
               level={3}
@@ -162,9 +164,7 @@ export default function ScreensaverPage() {
           {retirementDate && !isRetired ? (
             <div className="dash-progress" role="group" aria-label="人生进度">
               <div className="dash-progress__head">
-                <span className="dash-progress__label">
-                  人生进度 · 距满 {config.retirementAge} 周岁
-                </span>
+                <span className="dash-progress__label">人生进度 · 距满 {displayAge} 周岁</span>
                 <span className="dash-progress__value">{lifeProgress.toFixed(1)}%</span>
               </div>
               <div className="dash-progress__track">

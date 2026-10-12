@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Card, DatePicker, InputNumber, Tag, Typography } from "antd";
+import {
+  Button,
+  Card,
+  DatePicker,
+  InputNumber,
+  Radio,
+  Select,
+  Switch,
+  Tag,
+  Typography,
+  message
+} from "antd";
 import type { Dayjs } from "dayjs";
 import AppShell from "../components/AppShell";
 import ScreensaverImageManager from "../components/ScreensaverImageManager";
@@ -12,7 +23,22 @@ import {
   type CarouselConfig,
   type ScreensaverImage
 } from "../lib/config";
-import { computeLifeProgress, computeRetirementDate, toBirthday } from "../lib/compute";
+import {
+  computeLifeProgress,
+  computeRetirementDate,
+  getDisplayRetirementAge,
+  toBirthday
+} from "../lib/compute";
+import {
+  GENDER_LABELS,
+  JOB_CATEGORY_LABELS,
+  describePolicy,
+  type Gender,
+  type JobCategory,
+  type PolicySource
+} from "../lib/retirementPolicy";
+import { REMINDER_MILESTONE_PRESETS, requestNotificationPermission } from "../lib/reminders";
+import type { AppearanceTheme } from "../lib/config";
 import { deleteImage, genImageId, putImage } from "../lib/imageStore";
 
 /** 后台配置页：唯一写入配置源的入口，修改即时保存并同步到屏保页 */
@@ -23,6 +49,11 @@ export default function AdminPage() {
   const birthday = useMemo(() => toBirthday(config), [config]);
   const retirementDate = useMemo(() => computeRetirementDate(config), [config]);
   const lifeProgress = useMemo(() => computeLifeProgress(now, config), [now, config]);
+  const displayAge = useMemo(() => getDisplayRetirementAge(config), [config]);
+  const policySummary = useMemo(
+    () => describePolicy(config.policy, config.retirementAge),
+    [config.policy, config.retirementAge]
+  );
 
   const [imageError, setImageError] = useState<string | null>(null);
 
@@ -54,8 +85,54 @@ export default function AdminPage() {
     setConfig((prev) => ({
       ...prev,
       birthday: DEFAULT_CONFIG.birthday,
-      retirementAge: DEFAULT_CONFIG.retirementAge
+      retirementAge: DEFAULT_CONFIG.retirementAge,
+      policy: { ...DEFAULT_CONFIG.policy },
+      reminders: {
+        ...DEFAULT_CONFIG.reminders,
+        milestoneDays: [...DEFAULT_CONFIG.reminders.milestoneDays]
+      },
+      appearance: { ...DEFAULT_CONFIG.appearance }
     }));
+
+  const handlePolicySource = (source: PolicySource) => {
+    setConfig((prev) => ({ ...prev, policy: { ...prev.policy, source } }));
+  };
+
+  const handlePolicyGender = (gender: Gender) => {
+    setConfig((prev) => ({ ...prev, policy: { ...prev.policy, gender } }));
+  };
+
+  const handlePolicyJob = (jobCategory: JobCategory) => {
+    setConfig((prev) => ({ ...prev, policy: { ...prev.policy, jobCategory } }));
+  };
+
+  const handleGradualDelay = (checked: boolean) => {
+    setConfig((prev) => ({
+      ...prev,
+      reminders: { ...prev.reminders, useGradualDelay: checked }
+    }));
+  };
+
+  const handleRemindersEnabled = async (checked: boolean) => {
+    if (checked) {
+      const perm = await requestNotificationPermission();
+      if (perm === "denied") {
+        message.warning("通知权限被拒绝，请在系统设置中允许本应用通知");
+        return;
+      }
+      if (perm === "unsupported" && !window.desktopApi?.showNotification) {
+        message.info("当前环境不支持浏览器通知，请使用桌面端获得完整提醒");
+      }
+    }
+    setConfig((prev) => ({
+      ...prev,
+      reminders: { ...prev.reminders, enabled: checked }
+    }));
+  };
+
+  const handleThemeChange = (theme: AppearanceTheme) => {
+    setConfig((prev) => ({ ...prev, appearance: { theme } }));
+  };
 
   const addFiles = async (files: File[]) => {
     setImageError(null);
@@ -158,17 +235,98 @@ export default function AdminPage() {
             />
           </div>
 
+          <div className="admin-field admin-field--policy">
+            <Typography.Text type="secondary" className="dash-block--birth__hint">
+              退休政策
+            </Typography.Text>
+            <Radio.Group
+              className="admin-policy-source"
+              value={config.policy.source}
+              onChange={(e) => handlePolicySource(e.target.value as PolicySource)}
+              style={{ marginTop: 8 }}
+            >
+              <Radio.Button value="manual">手动指定年龄</Radio.Button>
+              <Radio.Button value="preset">性别 / 岗位预设</Radio.Button>
+            </Radio.Group>
+            {config.policy.source === "preset" ? (
+              <div className="admin-policy-preset">
+                <Select
+                  className="admin-policy-select"
+                  value={config.policy.gender}
+                  onChange={handlePolicyGender}
+                  options={(Object.entries(GENDER_LABELS) as [Gender, string][]).map(
+                    ([value, label]) => ({ value, label })
+                  )}
+                />
+                <Select
+                  className="admin-policy-select"
+                  value={config.policy.jobCategory}
+                  onChange={handlePolicyJob}
+                  options={(Object.entries(JOB_CATEGORY_LABELS) as [JobCategory, string][]).map(
+                    ([value, label]) => ({ value, label })
+                  )}
+                />
+                <div className="admin-policy-hint">
+                  <Switch
+                    size="small"
+                    checked={config.reminders.useGradualDelay}
+                    onChange={handleGradualDelay}
+                  />
+                  <Typography.Text type="secondary">
+                    按出生 cohort 微调年龄（演示模型，非官方表格）
+                  </Typography.Text>
+                </div>
+              </div>
+            ) : null}
+            <Tag className="admin-policy-tag" color="blue">
+              {policySummary} · 生效 {displayAge} 周岁
+            </Tag>
+          </div>
+
           <div className="admin-field">
             <Typography.Text type="secondary" className="dash-block--birth__hint">
-              退休年龄（周岁）
+              退休年龄（周岁）{config.policy.source === "preset" ? "· 预设模式下由规则计算" : ""}
             </Typography.Text>
             <InputNumber
               className="admin-age-input"
               min={RETIREMENT_AGE_MIN}
               max={RETIREMENT_AGE_MAX}
-              value={config.retirementAge}
+              value={config.policy.source === "preset" ? displayAge : config.retirementAge}
               onChange={handleAgeChange}
+              disabled={config.policy.source === "preset"}
               style={{ width: "100%", marginTop: 8 }}
+            />
+          </div>
+
+          <div className="admin-field admin-field--reminders">
+            <Typography.Text type="secondary" className="dash-block--birth__hint">
+              退休提醒
+            </Typography.Text>
+            <div className="admin-reminder-row">
+              <Switch
+                checked={config.reminders.enabled}
+                onChange={(v) => void handleRemindersEnabled(v)}
+              />
+              <Typography.Text type="secondary">
+                在 {REMINDER_MILESTONE_PRESETS.join(" / ")} 天等节点发送本地通知（各节点一次）
+              </Typography.Text>
+            </div>
+          </div>
+
+          <div className="admin-field">
+            <Typography.Text type="secondary" className="dash-block--birth__hint">
+              界面主题
+            </Typography.Text>
+            <Select
+              className="admin-theme-select"
+              value={config.appearance.theme}
+              onChange={handleThemeChange}
+              style={{ width: "100%", marginTop: 8 }}
+              options={[
+                { value: "dark", label: "深色（默认大屏）" },
+                { value: "light", label: "浅色" },
+                { value: "system", label: "跟随系统" }
+              ]}
             />
           </div>
 
@@ -186,7 +344,7 @@ export default function AdminPage() {
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"
             bordered={false}
           >
-            <div className="dash-panel__label">目标时刻 · 满 {config.retirementAge} 周岁</div>
+            <div className="dash-panel__label">目标时刻 · 满 {displayAge} 周岁</div>
             <Typography.Title
               className="dash-panel__value"
               level={3}
@@ -199,9 +357,7 @@ export default function AdminPage() {
           {retirementDate ? (
             <div className="dash-progress" role="group" aria-label="人生进度">
               <div className="dash-progress__head">
-                <span className="dash-progress__label">
-                  人生进度 · 距满 {config.retirementAge} 周岁
-                </span>
+                <span className="dash-progress__label">人生进度 · 距满 {displayAge} 周岁</span>
                 <span className="dash-progress__value">{lifeProgress.toFixed(1)}%</span>
               </div>
               <div className="dash-progress__track">
