@@ -8,13 +8,13 @@ export type Gender = "male" | "female";
 /** 岗位类别（简化口径，便于用户快速选型） */
 export type JobCategory = "general" | "management" | "special_early";
 
-export type RulePackSource = "builtin" | "custom";
+export type RulePackSource = "builtin" | "custom" | "online";
 
 export type RetirementPolicy = {
   source: PolicySource;
   gender: Gender;
   jobCategory: JobCategory;
-  /** 查表使用的规则包：内置 JSON / 用户导入自定义 */
+  /** 查表使用的规则包：内置 / 在线缓存 / 用户导入自定义 */
   rulePackSource: RulePackSource;
 };
 
@@ -58,7 +58,9 @@ export function normalizePolicy(raw: unknown): RetirementPolicy {
   if (source.jobCategory === "management") jobCategory = "management";
   else if (source.jobCategory === "special_early") jobCategory = "special_early";
   const policySource = source.source === "preset" ? "preset" : "manual";
-  const rulePackSource = source.rulePackSource === "custom" ? "custom" : "builtin";
+  let rulePackSource: RulePackSource = "builtin";
+  if (source.rulePackSource === "custom") rulePackSource = "custom";
+  else if (source.rulePackSource === "online") rulePackSource = "online";
   return { source: policySource, gender, jobCategory, rulePackSource };
 }
 

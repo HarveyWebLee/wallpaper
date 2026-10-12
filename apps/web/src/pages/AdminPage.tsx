@@ -17,7 +17,7 @@ import type { Dayjs } from "dayjs";
 import AppShell from "../components/AppShell";
 import ShareCardButton from "../components/ShareCardButton";
 import ScreensaverImageManager from "../components/ScreensaverImageManager";
-import { useNow, useRetirementConfig } from "../hooks";
+import { useNow, useRetirementConfig, useRulePackCacheVersion } from "../hooks";
 import {
   DEFAULT_CONFIG,
   MAX_IMAGES,
@@ -43,6 +43,13 @@ import {
   saveCustomRulePack
 } from "../lib/retirementRulePack";
 import {
+  clearOnlineRulePackCache,
+  formatRulePackMetaLine,
+  getDefaultRulePackRemoteUrl,
+  getOnlineCacheMeta,
+  syncRemoteRulePack
+} from "../lib/rulePackRemote";
+import {
   GENDER_LABELS,
   JOB_CATEGORY_LABELS,
   describePolicy,
@@ -64,6 +71,7 @@ import { deleteImage, genImageId, putImage } from "../lib/imageStore";
 export default function AdminPage() {
   const now = useNow();
   const { config, setConfig } = useRetirementConfig();
+  const rulePackCacheVersion = useRulePackCacheVersion();
 
   const birthday = useMemo(() => toBirthday(config), [config]);
   const retirementDate = useMemo(() => computeRetirementDate(config), [config]);
@@ -79,9 +87,12 @@ export default function AdminPage() {
     () => getActiveRulePackDisclaimer(config.policy),
     [config.policy]
   );
+  const onlineCacheMeta = useMemo(() => getOnlineCacheMeta(), [rulePackCacheVersion]);
+  const onlineMetaLine = useMemo(() => formatRulePackMetaLine(onlineCacheMeta), [onlineCacheMeta]);
 
   const [imageError, setImageError] = useState<string | null>(null);
   const [customMilestoneDay, setCustomMilestoneDay] = useState<number | null>(null);
+  const [rulePackSyncing, setRulePackSyncing] = useState(false);
 
   /** 与触发器同宽：下拉挂载在 body，须用测量值同步 popupStyle */
   const birthBlockRef = useRef<HTMLDivElement>(null);
@@ -193,6 +204,36 @@ export default function AdminPage() {
 
   const handleRulePackSource = (rulePackSource: RulePackSource) => {
     setConfig((prev) => ({ ...prev, policy: { ...prev.policy, rulePackSource } }));
+    if (rulePackSource === "online") {
+      void handleCheckRulePackUpdate(false);
+    }
+  };
+
+  const handleCheckRulePackUpdate = async (force: boolean) => {
+    setRulePackSyncing(true);
+    try {
+      const result = await syncRemoteRulePack({ force });
+      if (result.status === "updated") {
+        message.success(`规则包已更新至 v${result.meta.packVersion}`);
+      } else if (result.status === "unchanged") {
+        message.info("在线规则包已是最新（本地缓存有效）");
+      } else if (result.status === "cached_fallback") {
+        message.warning(`网络异常，已继续使用本地缓存：${result.error}`);
+      } else {
+        message.error(`同步失败：${result.error}`);
+      }
+    } finally {
+      setRulePackSyncing(false);
+    }
+  };
+
+  const handleClearOnlineRulePack = () => {
+    clearOnlineRulePackCache();
+    setConfig((prev) => ({
+      ...prev,
+      policy: { ...prev.policy, rulePackSource: "builtin" }
+    }));
+    message.success("已清除在线缓存并切回内置规则包");
   };
 
   const handleImportRulePackFile = async (file: File) => {
@@ -386,8 +427,34 @@ export default function AdminPage() {
                       onChange={(e) => handleRulePackSource(e.target.value as RulePackSource)}
                     >
                       <Radio.Button value="builtin">内置规则包</Radio.Button>
+                      <Radio.Button value="online">在线（本地缓存）</Radio.Button>
                       <Radio.Button value="custom">自定义导入</Radio.Button>
                     </Radio.Group>
+                    {config.policy.rulePackSource === "online" ? (
+                      <div className="admin-rule-pack-online">
+                        <Typography.Text type="secondary">{onlineMetaLine}</Typography.Text>
+                        <Typography.Text type="secondary" className="admin-rule-pack-online__url">
+                          源：{getDefaultRulePackRemoteUrl()}
+                        </Typography.Text>
+                        <div className="admin-rule-pack-actions">
+                          <Button
+                            loading={rulePackSyncing}
+                            onClick={() => void handleCheckRulePackUpdate(false)}
+                          >
+                            检查更新
+                          </Button>
+                          <Button
+                            loading={rulePackSyncing}
+                            onClick={() => void handleCheckRulePackUpdate(true)}
+                          >
+                            强制重新下载
+                          </Button>
+                          <Button type="link" danger onClick={handleClearOnlineRulePack}>
+                            清除在线缓存
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="admin-rule-pack-actions">
                       <input
                         ref={rulePackFileRef}

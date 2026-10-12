@@ -1,5 +1,6 @@
 import dayjs, { type Dayjs } from "dayjs";
 import defaultPackJson from "../data/retirement-rule-pack.default.json";
+import { loadOnlineCachedRulePack } from "./rulePackRemote";
 import type { Gender, JobCategory, RetirementPolicy } from "./retirementPolicy";
 import { getPresetRetirementAge } from "./retirementPolicy";
 
@@ -164,6 +165,10 @@ export function getActiveRulePack(
     const custom = loadCustomRulePack();
     if (custom) return custom;
   }
+  if (policy.rulePackSource === "online") {
+    const online = loadOnlineCachedRulePack();
+    if (online) return online;
+  }
   return getBuiltinRulePack();
 }
 
@@ -223,7 +228,12 @@ export function lookupRetirementAgeMonthsFromPack(
 
 export function describeActiveRulePack(policy: Pick<RetirementPolicy, "rulePackSource">): string {
   const pack = getActiveRulePack(policy);
-  const sourceLabel = policy.rulePackSource === "custom" ? "自定义规则包" : "内置规则包";
+  const sourceLabel =
+    policy.rulePackSource === "custom"
+      ? "自定义规则包"
+      : policy.rulePackSource === "online"
+        ? "在线规则包（本地缓存）"
+        : "内置规则包";
   return `${sourceLabel} · ${pack.title}（v${pack.version}）`;
 }
 

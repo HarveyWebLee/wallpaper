@@ -5,6 +5,7 @@ import {
   useHashRoute,
   useRetirementConfig,
   useRetirementReminders,
+  useRulePackOnlineSync,
   useNow
 } from "./hooks";
 import ScreensaverPage from "./pages/ScreensaverPage";
@@ -18,6 +19,7 @@ export default function App() {
   const { config } = useRetirementConfig();
   const { antTheme } = useAppearanceTheme(config.appearance.theme);
   useRetirementReminders(config, now);
+  useRulePackOnlineSync(config.policy, config.reminders.useGradualDelay);
 
   // Electron 托盘「后台配置」等主进程导航
   useEffect(() => {

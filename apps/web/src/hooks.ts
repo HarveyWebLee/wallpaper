@@ -19,6 +19,12 @@ import {
 import { computeRetirementDate } from "./lib/compute";
 import { antThemeForResolved, resolveAppearanceTheme } from "./lib/theme";
 import type { ThemeConfig } from "antd";
+import type { RetirementPolicy } from "./lib/retirementPolicy";
+import {
+  shouldAutoCheckRemoteRulePack,
+  subscribeRulePackCacheChanged,
+  syncRemoteRulePack
+} from "./lib/rulePackRemote";
 
 /** 每 intervalMs 刷新一次的「当前时刻」，驱动倒计时、进度与顶栏时钟 */
 export function useNow(intervalMs = 1000): Dayjs {
@@ -173,3 +179,22 @@ export function useRetirementReminders(config: RetirementConfig, now: Dayjs): vo
 }
 
 export type { ReminderConfig };
+
+/** 选用在线规则包时：24h 内自动检查一次远程更新并写入本地缓存 */
+export function useRulePackOnlineSync(
+  policy: RetirementPolicy,
+  gradualLookupEnabled: boolean
+): void {
+  useEffect(() => {
+    if (!gradualLookupEnabled || policy.rulePackSource !== "online") return;
+    if (!shouldAutoCheckRemoteRulePack()) return;
+    void syncRemoteRulePack();
+  }, [gradualLookupEnabled, policy.rulePackSource]);
+}
+
+/** 规则包本地缓存变更时触发重渲染（在线同步 / 清除缓存后刷新查表结果） */
+export function useRulePackCacheVersion(): number {
+  const [version, setVersion] = useState(0);
+  useEffect(() => subscribeRulePackCacheChanged(() => setVersion((v) => v + 1)), []);
+  return version;
+}
