@@ -710,3 +710,101 @@ html[data-theme="light"] .countdown-card {
     0 0 0 1px rgba(14, 165, 233, 0.1),
     0 16px 48px rgba(15, 23, 42, 0.06);
 }
+
+/* ========== 退休庆祝层 ========== */
+.retirement-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.retirement-celebration--active {
+  opacity: 1;
+}
+
+.retirement-celebration__confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.retirement-celebration__bit {
+  position: absolute;
+  top: -12%;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation-name: retirementConfettiFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.retirement-celebration__card {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 28px 36px;
+  border-radius: 20px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 48px rgba(45, 212, 191, 0.2);
+  animation: retirementCardPop 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html[data-theme="light"] .retirement-celebration__card {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(13, 148, 136, 0.35);
+}
+
+.retirement-celebration__emoji {
+  font-size: 42px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.retirement-celebration__title {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 36px);
+  letter-spacing: 0.06em;
+  color: rgba(226, 232, 240, 0.98);
+}
+
+html[data-theme="light"] .retirement-celebration__title {
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.retirement-celebration__sub {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+@keyframes retirementConfettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0.2;
+  }
+}
+
+@keyframes retirementCardPop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

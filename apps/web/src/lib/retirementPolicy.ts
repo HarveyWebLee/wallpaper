@@ -76,23 +76,15 @@ export function describePolicy(policy: RetirementPolicy, manualAge: number): str
   return `预设规则 · ${GENDER_LABELS[policy.gender]} · ${JOB_CATEGORY_LABELS[policy.jobCategory]} · 满 ${age} 周岁`;
 }
 
-/** 渐进式延迟退休（教学演示）：在基准年龄上按出生年份微调（可选扩展点） */
-export function applyGradualDelay(baseAge: number, birthday: Dayjs | null): number {
-  if (!birthday) return baseAge;
-  const birthYear = birthday.year();
-  // 1965 年及以前出生：不加延迟；之后每 4 年约 +1 岁（极简模型，与真实政策表格不同）
-  if (birthYear <= 1965) return baseAge;
-  const extra = Math.min(3, Math.floor((birthYear - 1965) / 4));
-  return baseAge + extra;
-}
-
+/** 手动/预设下的整数周岁（不含查表到月；查表见 retirementDelayTable） */
 export function getEffectiveRetirementAgeWithDelay(
   policy: RetirementPolicy,
   manualAge: number,
-  birthday: Dayjs | null,
-  useGradualDelay: boolean
+  _birthday: Dayjs | null,
+  _useGradualDelay: boolean
 ): number {
-  const base = policy.source === "preset" ? getPresetRetirementAge(policy) : manualAge;
-  if (!useGradualDelay || policy.source === "manual") return base;
-  return applyGradualDelay(base, birthday);
+  void _birthday;
+  void _useGradualDelay;
+  if (policy.source === "preset") return getPresetRetirementAge(policy);
+  return manualAge;
 }

@@ -2,18 +2,23 @@ import type { Dayjs } from "dayjs";
 
 export type ReminderConfig = {
   enabled: boolean;
-  /** 是否在预设政策下启用出生 cohort 微调（演示用） */
+  /** 预设政策下按出生年月查表（精确到月） */
   useGradualDelay: boolean;
   /** 距离退休剩余整天数达到下列值时各提醒一次（0 = 退休当天） */
   milestoneDays: number[];
+  /** 追加到通知正文的自定义附言 */
+  customNote: string;
 };
 
 export const REMINDER_MILESTONE_PRESETS = [365, 100, 30, 7, 1, 0] as const;
 
+export const REMINDER_MILESTONE_OPTIONS = [...REMINDER_MILESTONE_PRESETS];
+
 export const DEFAULT_REMINDERS: ReminderConfig = {
   enabled: false,
   useGradualDelay: false,
-  milestoneDays: [...REMINDER_MILESTONE_PRESETS]
+  milestoneDays: [...REMINDER_MILESTONE_PRESETS],
+  customNote: ""
 };
 
 const FIRED_STORAGE_KEY = "wallpaper:reminder-fired:v1";
@@ -43,7 +48,16 @@ export function normalizeReminders(raw: unknown): ReminderConfig {
     const unique = [...new Set(parsed.map((n) => Math.round(n)))].sort((a, b) => b - a);
     if (unique.length > 0) milestoneDays = unique;
   }
-  return { enabled, useGradualDelay, milestoneDays };
+  const customNote = typeof source.customNote === "string" ? source.customNote.slice(0, 120) : "";
+  return { enabled, useGradualDelay, milestoneDays, customNote };
+}
+
+export function toggleMilestoneDay(current: number[], day: number, on: boolean): number[] {
+  const set = new Set(current);
+  if (on) set.add(day);
+  else set.delete(day);
+  const next = [...set].sort((a, b) => b - a);
+  return next.length > 0 ? next : [...DEFAULT_REMINDERS.milestoneDays];
 }
 
 export function loadFiredRecord(): ReminderFiredRecord | null {
@@ -82,19 +96,24 @@ export type ReminderPayload = {
   body: string;
 };
 
-export function buildReminderPayload(milestoneDay: number, retirementDate: Dayjs): ReminderPayload {
+export function buildReminderPayload(
+  milestoneDay: number,
+  retirementDate: Dayjs,
+  customNote?: string
+): ReminderPayload {
   const dateStr = retirementDate.format("YYYY-MM-DD HH:mm");
+  const suffix = customNote?.trim() ? `\n${customNote.trim()}` : "";
   if (milestoneDay === 0) {
     return {
       milestoneDay: 0,
       title: "今天退休啦 🎉",
-      body: `目标退休时刻：${dateStr}。祝你开启人生新篇章！`
+      body: `目标退休时刻：${dateStr}。祝你开启人生新篇章！${suffix}`
     };
   }
   return {
     milestoneDay,
     title: `距离退休还有 ${milestoneDay} 天`,
-    body: `目标退休时刻：${dateStr}。屏保倒计时已为你同步。`
+    body: `目标退休时刻：${dateStr}。屏保倒计时已为你同步。${suffix}`
   };
 }
 

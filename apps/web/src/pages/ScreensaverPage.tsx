@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Card, Space, Typography } from "antd";
 import AppShell from "../components/AppShell";
 import SettingsGear from "../components/SettingsGear";
+import RetirementCelebration from "../components/RetirementCelebration";
 import ImageCarousel from "../components/ImageCarousel";
 import { FlipCountUnit } from "../components/flip";
 import { useNow, useRetirementConfig, useScreensaverImages } from "../hooks";
@@ -9,7 +10,7 @@ import {
   breakdownRemaining,
   computeLifeProgress,
   computeRetirementDate,
-  getDisplayRetirementAge,
+  getDisplayRetirementAgeLabel,
   pad2
 } from "../lib/compute";
 
@@ -112,7 +113,7 @@ export default function ScreensaverPage() {
   );
 
   const lifeProgress = useMemo(() => computeLifeProgress(now, config), [now, config]);
-  const displayAge = useMemo(() => getDisplayRetirementAge(config), [config]);
+  const ageLabel = useMemo(() => getDisplayRetirementAgeLabel(config), [config]);
 
   const isRetired = Boolean(retirementDate) && remainingSeconds <= 0;
 
@@ -151,7 +152,7 @@ export default function ScreensaverPage() {
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"
             bordered={false}
           >
-            <div className="dash-panel__label">目标时刻 · 满 {displayAge} 周岁</div>
+            <div className="dash-panel__label">目标时刻 · {ageLabel}</div>
             <Typography.Title
               className="dash-panel__value"
               level={3}
@@ -164,7 +165,7 @@ export default function ScreensaverPage() {
           {retirementDate && !isRetired ? (
             <div className="dash-progress" role="group" aria-label="人生进度">
               <div className="dash-progress__head">
-                <span className="dash-progress__label">人生进度 · 距满 {displayAge} 周岁</span>
+                <span className="dash-progress__label">人生进度 · 距{ageLabel}</span>
                 <span className="dash-progress__value">{lifeProgress.toFixed(1)}%</span>
               </div>
               <div className="dash-progress__track">
@@ -225,8 +226,8 @@ export default function ScreensaverPage() {
                   />
                 </div>
               ) : isRetired ? (
-                <Typography.Text className="dash-hero__hint">
-                  已到或已超过退休时间。
+                <Typography.Text className="dash-hero__hint dash-hero__hint--retired">
+                  已到或已超过退休时间，享受当下每一刻。
                 </Typography.Text>
               ) : (
                 <Typography.Text type="secondary" className="dash-hero__hint">
@@ -241,6 +242,7 @@ export default function ScreensaverPage() {
           </div>
         </Space>
       </Card>
+      <RetirementCelebration active={isRetired} subline={ageLabel} />
       <SettingsGear />
     </AppShell>
   );

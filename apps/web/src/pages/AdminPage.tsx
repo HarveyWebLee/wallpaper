@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Card,
+  Checkbox,
   DatePicker,
+  Input,
   InputNumber,
   Radio,
   Select,
@@ -27,8 +29,10 @@ import {
   computeLifeProgress,
   computeRetirementDate,
   getDisplayRetirementAge,
+  getDisplayRetirementAgeLabel,
   toBirthday
 } from "../lib/compute";
+import { describeDelayTable } from "../lib/retirementDelayTable";
 import {
   GENDER_LABELS,
   JOB_CATEGORY_LABELS,
@@ -37,7 +41,12 @@ import {
   type JobCategory,
   type PolicySource
 } from "../lib/retirementPolicy";
-import { REMINDER_MILESTONE_PRESETS, requestNotificationPermission } from "../lib/reminders";
+import {
+  REMINDER_MILESTONE_OPTIONS,
+  REMINDER_MILESTONE_PRESETS,
+  toggleMilestoneDay,
+  requestNotificationPermission
+} from "../lib/reminders";
 import type { AppearanceTheme } from "../lib/config";
 import { deleteImage, genImageId, putImage } from "../lib/imageStore";
 
@@ -50,12 +59,15 @@ export default function AdminPage() {
   const retirementDate = useMemo(() => computeRetirementDate(config), [config]);
   const lifeProgress = useMemo(() => computeLifeProgress(now, config), [now, config]);
   const displayAge = useMemo(() => getDisplayRetirementAge(config), [config]);
+  const ageLabel = useMemo(() => getDisplayRetirementAgeLabel(config), [config]);
   const policySummary = useMemo(
     () => describePolicy(config.policy, config.retirementAge),
     [config.policy, config.retirementAge]
   );
+  const delayTableHint = useMemo(() => describeDelayTable(config.policy), [config.policy]);
 
   const [imageError, setImageError] = useState<string | null>(null);
+  const [customMilestoneDay, setCustomMilestoneDay] = useState<number | null>(null);
 
   /** 与触发器同宽：下拉挂载在 body，须用测量值同步 popupStyle */
   const birthBlockRef = useRef<HTMLDivElement>(null);
@@ -132,6 +144,36 @@ export default function AdminPage() {
 
   const handleThemeChange = (theme: AppearanceTheme) => {
     setConfig((prev) => ({ ...prev, appearance: { theme } }));
+  };
+
+  const handleResetMilestones = () => {
+    setConfig((prev) => ({
+      ...prev,
+      reminders: {
+        ...prev.reminders,
+        milestoneDays: [...REMINDER_MILESTONE_PRESETS]
+      }
+    }));
+  };
+
+  const handleAddCustomMilestone = () => {
+    if (customMilestoneDay === null || !Number.isFinite(customMilestoneDay)) return;
+    const day = Math.min(3650, Math.max(0, Math.round(customMilestoneDay)));
+    setConfig((prev) => ({
+      ...prev,
+      reminders: {
+        ...prev.reminders,
+        milestoneDays: toggleMilestoneDay(prev.reminders.milestoneDays, day, true)
+      }
+    }));
+    setCustomMilestoneDay(null);
+  };
+
+  const handleReminderNote = (value: string) => {
+    setConfig((prev) => ({
+      ...prev,
+      reminders: { ...prev.reminders, customNote: value.slice(0, 120) }
+    }));
   };
 
   const addFiles = async (files: File[]) => {
@@ -273,13 +315,18 @@ export default function AdminPage() {
                     onChange={handleGradualDelay}
                   />
                   <Typography.Text type="secondary">
-                    按出生 cohort 微调年龄（演示模型，非官方表格）
+                    按出生年月查表（精确到月，简化非官方表格）
                   </Typography.Text>
                 </div>
+                {config.reminders.useGradualDelay ? (
+                  <Typography.Text type="secondary" className="admin-policy-table-hint">
+                    {delayTableHint}
+                  </Typography.Text>
+                ) : null}
               </div>
             ) : null}
             <Tag className="admin-policy-tag" color="blue">
-              {policySummary} · 生效 {displayAge} 周岁
+              {policySummary} · 生效 {ageLabel}
             </Tag>
           </div>
 
@@ -307,10 +354,49 @@ export default function AdminPage() {
                 checked={config.reminders.enabled}
                 onChange={(v) => void handleRemindersEnabled(v)}
               />
-              <Typography.Text type="secondary">
-                在 {REMINDER_MILESTONE_PRESETS.join(" / ")} 天等节点发送本地通知（各节点一次）
-              </Typography.Text>
+              <Typography.Text type="secondary">开启后，在下列剩余天数各通知一次</Typography.Text>
             </div>
+            <Checkbox.Group
+              className="admin-milestone-group"
+              value={config.reminders.milestoneDays}
+              options={REMINDER_MILESTONE_OPTIONS.map((day) => ({
+                label: day === 0 ? "当天 (0)" : `${day} 天`,
+                value: day
+              }))}
+              onChange={(values) =>
+                setConfig((prev) => ({
+                  ...prev,
+                  reminders: {
+                    ...prev.reminders,
+                    milestoneDays: (values as number[]).length
+                      ? ([...values] as number[]).sort((a, b) => b - a)
+                      : [...REMINDER_MILESTONE_PRESETS]
+                  }
+                }))
+              }
+            />
+            <div className="admin-milestone-custom">
+              <InputNumber
+                min={0}
+                max={3650}
+                placeholder="自定义天数"
+                value={customMilestoneDay}
+                onChange={(v) => setCustomMilestoneDay(v)}
+              />
+              <Button onClick={handleAddCustomMilestone}>添加节点</Button>
+              <Button type="link" onClick={handleResetMilestones}>
+                恢复默认节点
+              </Button>
+            </div>
+            <Input.TextArea
+              className="admin-reminder-note"
+              placeholder="通知附言（可选，最多 120 字）"
+              value={config.reminders.customNote}
+              onChange={(e) => handleReminderNote(e.target.value)}
+              autoSize={{ minRows: 2, maxRows: 3 }}
+              maxLength={120}
+              showCount
+            />
           </div>
 
           <div className="admin-field">
@@ -344,7 +430,7 @@ export default function AdminPage() {
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"
             bordered={false}
           >
-            <div className="dash-panel__label">目标时刻 · 满 {displayAge} 周岁</div>
+            <div className="dash-panel__label">目标时刻 · {ageLabel}</div>
             <Typography.Title
               className="dash-panel__value"
               level={3}
@@ -357,7 +443,7 @@ export default function AdminPage() {
           {retirementDate ? (
             <div className="dash-progress" role="group" aria-label="人生进度">
               <div className="dash-progress__head">
-                <span className="dash-progress__label">人生进度 · 距满 {displayAge} 周岁</span>
+                <span className="dash-progress__label">人生进度 · 距{ageLabel}</span>
                 <span className="dash-progress__value">{lifeProgress.toFixed(1)}%</span>
               </div>
               <div className="dash-progress__track">

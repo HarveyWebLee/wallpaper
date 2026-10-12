@@ -154,7 +154,9 @@ function runReminderTick(now: Dayjs, config: RetirementConfig): void {
   for (const milestone of config.reminders.milestoneDays) {
     if (daysLeft !== milestone || fired.has(milestone)) continue;
     fired.add(milestone);
-    void showReminderNotification(buildReminderPayload(milestone, retirementDate));
+    void showReminderNotification(
+      buildReminderPayload(milestone, retirementDate, config.reminders.customNote)
+    );
   }
 
   saveFiredRecord({ retirementIso, days: [...fired] });

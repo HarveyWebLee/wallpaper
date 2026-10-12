@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { lookupRetirementAgeMonths } from "./retirementDelayTable";
 import {
   DEFAULT_RETIREMENT_POLICY,
   getEffectiveRetirementAgeWithDelay,
@@ -116,12 +117,19 @@ function normalizeAppearance(raw: unknown): AppearanceConfig {
 /** 倒计时实际使用的退休年龄（不写入 storage，避免覆盖用户手动值） */
 export function resolveEffectiveRetirementAge(config: RetirementConfig): number {
   const birthday = config.birthday ? dayjs(config.birthday) : null;
+  if (
+    config.policy.source === "preset" &&
+    config.reminders.useGradualDelay &&
+    birthday?.isValid()
+  ) {
+    return clampAge(Math.floor(lookupRetirementAgeMonths(birthday, config.policy) / 12));
+  }
   return clampAge(
     getEffectiveRetirementAgeWithDelay(
       config.policy,
       config.retirementAge,
       birthday?.isValid() ? birthday : null,
-      config.reminders.useGradualDelay && config.policy.source === "preset"
+      config.reminders.useGradualDelay
     )
   );
 }
