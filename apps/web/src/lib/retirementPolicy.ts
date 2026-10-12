@@ -8,16 +8,21 @@ export type Gender = "male" | "female";
 /** 岗位类别（简化口径，便于用户快速选型） */
 export type JobCategory = "general" | "management" | "special_early";
 
+export type RulePackSource = "builtin" | "custom";
+
 export type RetirementPolicy = {
   source: PolicySource;
   gender: Gender;
   jobCategory: JobCategory;
+  /** 查表使用的规则包：内置 JSON / 用户导入自定义 */
+  rulePackSource: RulePackSource;
 };
 
 export const DEFAULT_RETIREMENT_POLICY: RetirementPolicy = {
   source: "manual",
   gender: "male",
-  jobCategory: "general"
+  jobCategory: "general",
+  rulePackSource: "builtin"
 };
 
 /** 预设退休年龄说明（参考国内渐进式延迟退休常见讨论口径，非官方精确算法） */
@@ -53,7 +58,8 @@ export function normalizePolicy(raw: unknown): RetirementPolicy {
   if (source.jobCategory === "management") jobCategory = "management";
   else if (source.jobCategory === "special_early") jobCategory = "special_early";
   const policySource = source.source === "preset" ? "preset" : "manual";
-  return { source: policySource, gender, jobCategory };
+  const rulePackSource = source.rulePackSource === "custom" ? "custom" : "builtin";
+  return { source: policySource, gender, jobCategory, rulePackSource };
 }
 
 /** 根据性别与岗位读取预设退休年龄（周岁） */

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "id": "builtin-2025-monthly-simplified",
+  "title": "渐进式延迟退休 · 简化逐月查表",
+  "disclaimer": "依据公开政策讨论整理的简化模型，逐月 cohort 递进；非政府部门发布的正式表格，仅供参考。",
+  "segments": [
+    {
+      "gender": "male",
+      "jobCategory": "general",
+      "cohortFrom": "1965-01",
+      "cohortTo": "1976-12",
+      "startAgeMonths": 720,
+      "endAgeMonths": 756,
+      "stepBirthMonths": 1
+    },
+    {
+      "gender": "male",
+      "jobCategory": "management",
+      "cohortFrom": "1965-01",
+      "cohortTo": "1976-12",
+      "startAgeMonths": 720,
+      "endAgeMonths": 756,
+      "stepBirthMonths": 1
+    },
+    {
+      "gender": "female",
+      "jobCategory": "general",
+      "cohortFrom": "1970-01",
+      "cohortTo": "1981-12",
+      "startAgeMonths": 600,
+      "endAgeMonths": 660,
+      "stepBirthMonths": 1
+    },
+    {
+      "gender": "female",
+      "jobCategory": "management",
+      "cohortFrom": "1970-01",
+      "cohortTo": "1981-12",
+      "startAgeMonths": 660,
+      "endAgeMonths": 696,
+      "stepBirthMonths": 1
+    }
+  ],
+  "overrides": []
+}

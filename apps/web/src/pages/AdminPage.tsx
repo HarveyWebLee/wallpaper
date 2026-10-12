@@ -15,6 +15,7 @@ import {
 } from "antd";
 import type { Dayjs } from "dayjs";
 import AppShell from "../components/AppShell";
+import ShareCardButton from "../components/ShareCardButton";
 import ScreensaverImageManager from "../components/ScreensaverImageManager";
 import { useNow, useRetirementConfig } from "../hooks";
 import {
@@ -32,14 +33,23 @@ import {
   getDisplayRetirementAgeLabel,
   toBirthday
 } from "../lib/compute";
-import { describeDelayTable } from "../lib/retirementDelayTable";
+import { describeDelayTable, getActiveRulePackDisclaimer } from "../lib/retirementDelayTable";
+import {
+  clearCustomRulePack,
+  downloadRulePackFile,
+  getActiveRulePack,
+  getBuiltinRulePack,
+  parseRulePackJson,
+  saveCustomRulePack
+} from "../lib/retirementRulePack";
 import {
   GENDER_LABELS,
   JOB_CATEGORY_LABELS,
   describePolicy,
   type Gender,
   type JobCategory,
-  type PolicySource
+  type PolicySource,
+  type RulePackSource
 } from "../lib/retirementPolicy";
 import {
   REMINDER_MILESTONE_OPTIONS,
@@ -65,12 +75,17 @@ export default function AdminPage() {
     [config.policy, config.retirementAge]
   );
   const delayTableHint = useMemo(() => describeDelayTable(config.policy), [config.policy]);
+  const rulePackDisclaimer = useMemo(
+    () => getActiveRulePackDisclaimer(config.policy),
+    [config.policy]
+  );
 
   const [imageError, setImageError] = useState<string | null>(null);
   const [customMilestoneDay, setCustomMilestoneDay] = useState<number | null>(null);
 
   /** 与触发器同宽：下拉挂载在 body，须用测量值同步 popupStyle */
   const birthBlockRef = useRef<HTMLDivElement>(null);
+  const rulePackFileRef = useRef<HTMLInputElement>(null);
   const [birthPickerPopupWidth, setBirthPickerPopupWidth] = useState<number>();
 
   useEffect(() => {
@@ -174,6 +189,45 @@ export default function AdminPage() {
       ...prev,
       reminders: { ...prev.reminders, customNote: value.slice(0, 120) }
     }));
+  };
+
+  const handleRulePackSource = (rulePackSource: RulePackSource) => {
+    setConfig((prev) => ({ ...prev, policy: { ...prev.policy, rulePackSource } }));
+  };
+
+  const handleImportRulePackFile = async (file: File) => {
+    try {
+      const pack = parseRulePackJson(await file.text());
+      if (!pack) {
+        message.error("规则包 JSON 格式无效，请对照内置包结构");
+        return;
+      }
+      saveCustomRulePack(pack);
+      setConfig((prev) => ({
+        ...prev,
+        policy: { ...prev.policy, rulePackSource: "custom" }
+      }));
+      message.success(`已导入规则包：${pack.title}`);
+    } catch {
+      message.error("读取文件失败");
+    }
+  };
+
+  const handleExportRulePack = () => {
+    downloadRulePackFile(getActiveRulePack(config.policy));
+  };
+
+  const handleExportBuiltinTemplate = () => {
+    downloadRulePackFile(getBuiltinRulePack(), "retirement-rule-pack.template.json");
+  };
+
+  const handleClearCustomRulePack = () => {
+    clearCustomRulePack();
+    setConfig((prev) => ({
+      ...prev,
+      policy: { ...prev.policy, rulePackSource: "builtin" }
+    }));
+    message.success("已恢复内置规则包");
   };
 
   const addFiles = async (files: File[]) => {
@@ -319,9 +373,45 @@ export default function AdminPage() {
                   </Typography.Text>
                 </div>
                 {config.reminders.useGradualDelay ? (
-                  <Typography.Text type="secondary" className="admin-policy-table-hint">
-                    {delayTableHint}
-                  </Typography.Text>
+                  <>
+                    <Typography.Text type="secondary" className="admin-policy-table-hint">
+                      {delayTableHint}
+                    </Typography.Text>
+                    <Typography.Paragraph type="secondary" className="admin-rule-pack-disclaimer">
+                      {rulePackDisclaimer}
+                    </Typography.Paragraph>
+                    <Radio.Group
+                      className="admin-rule-pack-source"
+                      value={config.policy.rulePackSource}
+                      onChange={(e) => handleRulePackSource(e.target.value as RulePackSource)}
+                    >
+                      <Radio.Button value="builtin">内置规则包</Radio.Button>
+                      <Radio.Button value="custom">自定义导入</Radio.Button>
+                    </Radio.Group>
+                    <div className="admin-rule-pack-actions">
+                      <input
+                        ref={rulePackFileRef}
+                        type="file"
+                        accept="application/json,.json"
+                        hidden
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void handleImportRulePackFile(file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button onClick={() => rulePackFileRef.current?.click()}>导入 JSON</Button>
+                      <Button onClick={handleExportRulePack}>导出当前包</Button>
+                      <Button type="link" onClick={handleExportBuiltinTemplate}>
+                        下载模板
+                      </Button>
+                      {config.policy.rulePackSource === "custom" ? (
+                        <Button type="link" danger onClick={handleClearCustomRulePack}>
+                          清除自定义
+                        </Button>
+                      ) : null}
+                    </div>
+                  </>
                 ) : null}
               </div>
             ) : null}
@@ -462,6 +552,7 @@ export default function AdminPage() {
             <Button className="admin-btn" onClick={handleReset}>
               重置为默认
             </Button>
+            <ShareCardButton className="admin-btn" config={config} now={now} />
             <Button className="admin-btn admin-btn--primary" type="primary" href="#/">
               查看屏保
             </Button>

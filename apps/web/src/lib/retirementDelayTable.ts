@@ -1,80 +1,20 @@
-import dayjs, { type Dayjs } from "dayjs";
+import type { Dayjs } from "dayjs";
 import type { Gender, JobCategory, RetirementPolicy } from "./retirementPolicy";
-import { getPresetRetirementAge } from "./retirementPolicy";
+import {
+  describeActiveRulePack,
+  getActiveRulePack,
+  lookupRetirementAgeMonthsFromPack
+} from "./retirementRulePack";
 
-/** 渐进延迟规则：出生 cohort 从 start 到 end 月龄，按 birth 步长递增 */
-type DelayRule = {
-  /** 最早 cohort 退休月龄（出生当月月底满龄） */
-  startAgeMonths: number;
-  /** 最晚 cohort 封顶月龄 */
-  endAgeMonths: number;
-  /** 纳入渐进计算的出生月起始（含） */
-  cohortFrom: string;
-  /** 纳入渐进计算的出生月结束（含） */
-  cohortTo: string;
-  /** 出生每推进 stepBirthMonths 月，退休月龄 +1 */
-  stepBirthMonths: number;
+export type RetirementAgeParts = {
+  years: number;
+  months: number;
 };
-
-/**
- * 简化查表（非官方）：模拟「满龄年月逐步后移」。
- * 男职工一般岗：60 周岁 → 63 周岁；女工人 50→55；女干部 55→58；特殊工种不做渐进。
- */
-const DELAY_RULES: Partial<Record<Gender, Partial<Record<JobCategory, DelayRule>>>> = {
-  male: {
-    general: {
-      startAgeMonths: 60 * 12,
-      endAgeMonths: 63 * 12,
-      cohortFrom: "1965-01",
-      cohortTo: "1976-12",
-      stepBirthMonths: 4
-    },
-    management: {
-      startAgeMonths: 60 * 12,
-      endAgeMonths: 63 * 12,
-      cohortFrom: "1965-01",
-      cohortTo: "1976-12",
-      stepBirthMonths: 4
-    }
-  },
-  female: {
-    general: {
-      startAgeMonths: 50 * 12,
-      endAgeMonths: 55 * 12,
-      cohortFrom: "1970-01",
-      cohortTo: "1981-12",
-      stepBirthMonths: 4
-    },
-    management: {
-      startAgeMonths: 55 * 12,
-      endAgeMonths: 58 * 12,
-      cohortFrom: "1970-01",
-      cohortTo: "1981-12",
-      stepBirthMonths: 4
-    }
-  }
-};
-
-function monthStart(value: string | Dayjs): Dayjs {
-  return dayjs(value).startOf("month");
-}
 
 /** 查表得到退休月龄（自出生起） */
 export function lookupRetirementAgeMonths(birthday: Dayjs, policy: RetirementPolicy): number {
-  const fallbackYears = getPresetRetirementAge(policy);
-  const rule = DELAY_RULES[policy.gender]?.[policy.jobCategory];
-  if (!rule) return fallbackYears * 12;
-
-  const birth = monthStart(birthday);
-  const from = monthStart(rule.cohortFrom);
-  const to = monthStart(rule.cohortTo);
-
-  if (birth.isBefore(from, "month")) return rule.startAgeMonths;
-  if (birth.isAfter(to, "month")) return rule.endAgeMonths;
-
-  const birthIndex = birth.diff(from, "month");
-  const extraMonths = Math.floor(birthIndex / rule.stepBirthMonths);
-  return Math.min(rule.endAgeMonths, rule.startAgeMonths + extraMonths);
+  const pack = getActiveRulePack(policy);
+  return lookupRetirementAgeMonthsFromPack(birthday, policy, pack);
 }
 
 /** 精确到月的退休时刻：出生时刻 + 查表月龄 */
@@ -82,11 +22,6 @@ export function lookupRetirementDate(birthday: Dayjs, policy: RetirementPolicy):
   const months = lookupRetirementAgeMonths(birthday, policy);
   return birthday.add(months, "month");
 }
-
-export type RetirementAgeParts = {
-  years: number;
-  months: number;
-};
 
 /** 将退休时刻相对出生拆解为「X 岁 Y 个月」 */
 export function retirementAgeParts(birthday: Dayjs, retirementDate: Dayjs): RetirementAgeParts {
@@ -102,7 +37,17 @@ export function formatRetirementAgeLabel(parts: RetirementAgeParts): string {
 }
 
 export function describeDelayTable(policy: RetirementPolicy): string {
-  const rule = DELAY_RULES[policy.gender]?.[policy.jobCategory];
-  if (!rule) return "当前岗位类别使用固定预设年龄，不参与渐进查表";
-  return `出生 ${rule.cohortFrom}～${rule.cohortTo} 按 ${rule.stepBirthMonths} 个月一档渐进`;
+  const pack = getActiveRulePack(policy);
+  const segment = pack.segments.find(
+    (s) => s.gender === policy.gender && s.jobCategory === policy.jobCategory
+  );
+  if (!segment) return `${describeActiveRulePack(policy)} · 当前岗位使用固定预设年龄`;
+  return `${describeActiveRulePack(policy)} · 出生 ${segment.cohortFrom}～${segment.cohortTo} 逐 ${segment.stepBirthMonths} 月递进`;
 }
+
+/** 供配置页展示规则包免责声明 */
+export function getActiveRulePackDisclaimer(policy: RetirementPolicy): string {
+  return getActiveRulePack(policy).disclaimer;
+}
+
+export type { Gender, JobCategory };

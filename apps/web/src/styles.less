@@ -798,6 +798,26 @@ html[data-theme="light"] .retirement-celebration__title {
   }
 }
 
+.screensaver-share {
+  position: fixed;
+  left: clamp(16px, 2vw, 28px);
+  bottom: clamp(16px, 2vw, 28px);
+  z-index: 35;
+}
+
+.screensaver-share__btn.ant-btn {
+  border-radius: 999px;
+  border-color: rgba(45, 212, 191, 0.35);
+  background: rgba(15, 23, 42, 0.72);
+  color: rgba(226, 232, 240, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+html[data-theme="light"] .screensaver-share__btn.ant-btn {
+  background: rgba(255, 255, 255, 0.88);
+  color: rgba(15, 23, 42, 0.9);
+}
+
 @keyframes retirementCardPop {
   from {
     opacity: 0;

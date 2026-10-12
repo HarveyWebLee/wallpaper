@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { Card, Space, Typography } from "antd";
 import AppShell from "../components/AppShell";
 import SettingsGear from "../components/SettingsGear";
+import ShareCardButton from "../components/ShareCardButton";
 import RetirementCelebration from "../components/RetirementCelebration";
 import ImageCarousel from "../components/ImageCarousel";
 import { FlipCountUnit } from "../components/flip";
@@ -242,6 +243,9 @@ export default function ScreensaverPage() {
           </div>
         </Space>
       </Card>
+      <div className="screensaver-share">
+        <ShareCardButton className="screensaver-share__btn" config={config} now={now} />
+      </div>
       <RetirementCelebration active={isRetired} subline={ageLabel} />
       <SettingsGear />
     </AppShell>
