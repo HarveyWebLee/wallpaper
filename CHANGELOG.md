@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/HarveyWebLee/wallpaper/compare/v1.3.0...v1.4.0) (2026-10-14)
+
+
+### Features
+
+* **web:** 退休政策预设、主题切换与里程碑提醒 ([#4](https://github.com/HarveyWebLee/wallpaper/issues/4)) ([605832b](https://github.com/HarveyWebLee/wallpaper/commit/605832b5aced1a2bddae2c5d25d46281cecd7d1c))
+
 # [1.3.0](https://github.com/HarveyWebLee/wallpaper/compare/v1.2.0...v1.3.0) (2026-10-10)
 
 
