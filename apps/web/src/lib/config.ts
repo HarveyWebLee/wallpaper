@@ -1,4 +1,12 @@
 import dayjs from "dayjs";
+import { lookupRetirementAgeMonths } from "./retirementDelayTable";
+import {
+  DEFAULT_RETIREMENT_POLICY,
+  getEffectiveRetirementAgeWithDelay,
+  normalizePolicy,
+  type RetirementPolicy
+} from "./retirementPolicy";
+import { DEFAULT_REMINDERS, normalizeReminders, type ReminderConfig } from "./reminders";
 
 /**
  * 退休倒计时的用户配置：作为「后台配置」与「屏保展示」两页的唯一数据源。
@@ -24,11 +32,23 @@ export type CarouselConfig = {
   showCountdown: boolean;
 };
 
+export type AppearanceTheme = "dark" | "light" | "system";
+
+export type AppearanceConfig = {
+  theme: AppearanceTheme;
+};
+
 export type RetirementConfig = {
   /** 出生日期与时间，ISO 字符串；为 null 表示尚未设置 */
   birthday: string | null;
-  /** 退休年龄（周岁） */
+  /** 退休年龄（周岁）；预设模式下由 policy 同步，手动模式下为用户输入 */
   retirementAge: number;
+  /** 退休政策：性别/岗位预设或手动 */
+  policy: RetirementPolicy;
+  /** 本地退休里程碑提醒 */
+  reminders: ReminderConfig;
+  /** 界面主题 */
+  appearance: AppearanceConfig;
   /** 屏保背景图片（有序，用于轮播） */
   images: ScreensaverImage[];
   /** 轮播设置 */
@@ -53,9 +73,16 @@ export const DEFAULT_CAROUSEL: CarouselConfig = {
   showCountdown: true
 };
 
+export const DEFAULT_APPEARANCE: AppearanceConfig = {
+  theme: "dark"
+};
+
 export const DEFAULT_CONFIG: RetirementConfig = {
   birthday: DEFAULT_BIRTHDAY_ISO,
   retirementAge: 60,
+  policy: { ...DEFAULT_RETIREMENT_POLICY },
+  reminders: { ...DEFAULT_REMINDERS, milestoneDays: [...DEFAULT_REMINDERS.milestoneDays] },
+  appearance: { ...DEFAULT_APPEARANCE },
   images: [],
   carousel: { ...DEFAULT_CAROUSEL }
 };
@@ -72,9 +99,39 @@ function cloneDefault(): RetirementConfig {
   return {
     birthday: DEFAULT_CONFIG.birthday,
     retirementAge: DEFAULT_CONFIG.retirementAge,
+    policy: { ...DEFAULT_RETIREMENT_POLICY },
+    reminders: { ...DEFAULT_REMINDERS, milestoneDays: [...DEFAULT_REMINDERS.milestoneDays] },
+    appearance: { ...DEFAULT_APPEARANCE },
     images: [],
     carousel: { ...DEFAULT_CAROUSEL }
   };
+}
+
+function normalizeAppearance(raw: unknown): AppearanceConfig {
+  if (!raw || typeof raw !== "object") return { ...DEFAULT_APPEARANCE };
+  const source = raw as Record<string, unknown>;
+  const theme = source.theme === "light" || source.theme === "system" ? source.theme : "dark";
+  return { theme };
+}
+
+/** 倒计时实际使用的退休年龄（不写入 storage，避免覆盖用户手动值） */
+export function resolveEffectiveRetirementAge(config: RetirementConfig): number {
+  const birthday = config.birthday ? dayjs(config.birthday) : null;
+  if (
+    config.policy.source === "preset" &&
+    config.reminders.useGradualDelay &&
+    birthday?.isValid()
+  ) {
+    return clampAge(Math.floor(lookupRetirementAgeMonths(birthday, config.policy) / 12));
+  }
+  return clampAge(
+    getEffectiveRetirementAgeWithDelay(
+      config.policy,
+      config.retirementAge,
+      birthday?.isValid() ? birthday : null,
+      config.reminders.useGradualDelay
+    )
+  );
 }
 
 function clampAge(value: unknown): number {
@@ -142,10 +199,19 @@ function normalizeCarousel(raw: unknown): CarouselConfig {
 export function normalizeConfig(raw: unknown): RetirementConfig {
   if (!raw || typeof raw !== "object") return cloneDefault();
   const source = raw as Record<string, unknown>;
+  const policy = normalizePolicy(source.policy);
+  const reminders = normalizeReminders(source.reminders);
+  const appearance = normalizeAppearance(source.appearance);
+  const birthday =
+    "birthday" in source ? normalizeBirthday(source.birthday) : DEFAULT_CONFIG.birthday;
+  const retirementAge =
+    "retirementAge" in source ? clampAge(source.retirementAge) : DEFAULT_CONFIG.retirementAge;
   return {
-    birthday: "birthday" in source ? normalizeBirthday(source.birthday) : DEFAULT_CONFIG.birthday,
-    retirementAge:
-      "retirementAge" in source ? clampAge(source.retirementAge) : DEFAULT_CONFIG.retirementAge,
+    birthday,
+    retirementAge,
+    policy,
+    reminders,
+    appearance,
     images: normalizeImages(source.images),
     carousel: normalizeCarousel(source.carousel)
   };

@@ -1,5 +1,10 @@
 import dayjs, { type Dayjs } from "dayjs";
-import type { RetirementConfig } from "./config";
+import { resolveEffectiveRetirementAge, type RetirementConfig } from "./config";
+import {
+  formatRetirementAgeLabel,
+  lookupRetirementDate,
+  retirementAgeParts
+} from "./retirementDelayTable";
 
 export type RemainingBreakdown = {
   years: number;
@@ -26,11 +31,35 @@ export function toBirthday(config: RetirementConfig): Dayjs | null {
   return parsed.isValid() ? parsed : null;
 }
 
-/** 满 retirementAge 周岁的退休时刻；未设置出生时间返回 null */
+/** 满有效退休年龄的退休时刻；未设置出生时间返回 null */
 export function computeRetirementDate(config: RetirementConfig): Dayjs | null {
   const birthday = toBirthday(config);
   if (!birthday) return null;
-  return birthday.add(config.retirementAge, "year");
+  if (config.policy.source === "preset" && config.reminders.useGradualDelay) {
+    return lookupRetirementDate(birthday, config.policy);
+  }
+  const age = resolveEffectiveRetirementAge(config);
+  return birthday.add(age, "year");
+}
+
+/** 展示用：整数周岁（查表模式下为向下取整的年份部分） */
+export function getDisplayRetirementAge(config: RetirementConfig): number {
+  const birthday = toBirthday(config);
+  const retirement = computeRetirementDate(config);
+  if (birthday && retirement) {
+    return retirement.diff(birthday, "year");
+  }
+  return resolveEffectiveRetirementAge(config);
+}
+
+/** 展示用：含月的年龄文案 */
+export function getDisplayRetirementAgeLabel(config: RetirementConfig): string {
+  const birthday = toBirthday(config);
+  const retirement = computeRetirementDate(config);
+  if (!birthday || !retirement) {
+    return `满 ${resolveEffectiveRetirementAge(config)} 周岁`;
+  }
+  return formatRetirementAgeLabel(retirementAgeParts(birthday, retirement));
 }
 
 /**

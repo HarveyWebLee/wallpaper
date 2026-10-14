@@ -1,6 +1,6 @@
 # Wallpaper Screensaver
 
-基于 Electron + NestJS + React 的桌面端屏保项目。当前版本已实现出生日期输入、退休日期实时计算、倒计时展示、趣味动画效果。
+基于 Electron + NestJS + React 的桌面端屏保项目。已实现出生日期输入、退休政策预设/手动年龄、退休里程碑本地提醒、深浅色主题、图片轮播屏保、倒计时翻牌与托盘快捷显隐等能力。详见 [功能需求文档](./docs/requirements.md)。
 
 ## 项目结构
 

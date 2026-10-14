@@ -102,3 +102,19 @@ NODE_ENV=production WALLPAPER_DEVTOOLS=1 pnpm exec electron .
 ```
 
 更完整的安装与排障说明见根目录 [README.md](../README.md) 及 [deployment.md](./deployment.md)。
+
+## 8. 退休规则包在线更新（前端）
+
+后台配置在「按出生年月查表」下可选择 **在线（本地缓存）**：
+
+- 默认从 GitHub `main` 上的 `apps/web/src/data/retirement-rule-pack.default.json` 拉取；
+- 成功后会写入 `localStorage`，查表只读本地缓存；远程 `version` 更高时才覆盖（不会用旧版降级）；
+- 应用在前台且选用在线源时，约 **每 24 小时** 自动检查一次。
+
+自定义远程地址（构建时注入）：
+
+```bash
+VITE_RETIREMENT_RULE_PACK_URL=https://example.com/retirement-rule-pack.json pnpm --filter @wallpaper/web build
+```
+
+开发环境可在 `apps/web` 下创建 `.env.local` 写入同名变量。
