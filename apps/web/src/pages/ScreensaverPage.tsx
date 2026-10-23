@@ -11,6 +11,7 @@ import {
   computeRetirementDate,
   pad2
 } from "../lib/compute";
+import { RETIREE_CATEGORY_LABEL } from "../lib/config";
 
 /** 屏保页：仅做展示，所有计算来源于唯一配置源（localStorage），与后台配置实时同步 */
 export default function ScreensaverPage() {
@@ -149,7 +150,10 @@ export default function ScreensaverPage() {
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"
             bordered={false}
           >
-            <div className="dash-panel__label">目标时刻 · 满 {config.retirementAge} 周岁</div>
+            <div className="dash-panel__label">
+              目标时刻 · 满 {config.retirementAge} 周岁
+              {config.category === "custom" ? "" : ` · ${RETIREE_CATEGORY_LABEL[config.category]}`}
+            </div>
             <Typography.Title
               className="dash-panel__value"
               level={3}

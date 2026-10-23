@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Card, DatePicker, InputNumber, Tag, Typography } from "antd";
+import { Button, Card, DatePicker, InputNumber, Segmented, Tag, Typography } from "antd";
 import type { Dayjs } from "dayjs";
 import AppShell from "../components/AppShell";
 import ScreensaverImageManager from "../components/ScreensaverImageManager";
@@ -7,9 +7,12 @@ import { useNow, useRetirementConfig } from "../hooks";
 import {
   DEFAULT_CONFIG,
   MAX_IMAGES,
+  RETIREE_CATEGORY_AGE,
+  RETIREE_CATEGORY_LABEL,
   RETIREMENT_AGE_MAX,
   RETIREMENT_AGE_MIN,
   type CarouselConfig,
+  type RetireeCategory,
   type ScreensaverImage
 } from "../lib/config";
 import { computeLifeProgress, computeRetirementDate, toBirthday } from "../lib/compute";
@@ -44,17 +47,28 @@ export default function AdminPage() {
     setConfig((prev) => ({ ...prev, birthday: value ? value.toISOString() : null }));
   };
 
+  // 手动调整年龄视为自定义，不再绑定任何人员类别预设
   const handleAgeChange = (value: number | null) => {
     if (value === null) return;
-    setConfig((prev) => ({ ...prev, retirementAge: value }));
+    setConfig((prev) => ({ ...prev, retirementAge: value, category: "custom" }));
   };
 
-  // 重置仅恢复出生日期与退休年龄，保留已上传图片，避免误删与孤儿 blob
+  // 选择人员类别：预设类别同步套用其法定退休年龄；自定义则仅切换类别、保留当前年龄
+  const handleCategoryChange = (category: RetireeCategory) => {
+    setConfig((prev) =>
+      category === "custom"
+        ? { ...prev, category }
+        : { ...prev, category, retirementAge: RETIREE_CATEGORY_AGE[category] }
+    );
+  };
+
+  // 重置仅恢复出生日期、退休年龄与人员类别，保留已上传图片，避免误删与孤儿 blob
   const handleReset = () =>
     setConfig((prev) => ({
       ...prev,
       birthday: DEFAULT_CONFIG.birthday,
-      retirementAge: DEFAULT_CONFIG.retirementAge
+      retirementAge: DEFAULT_CONFIG.retirementAge,
+      category: DEFAULT_CONFIG.category
     }));
 
   const addFiles = async (files: File[]) => {
@@ -160,6 +174,25 @@ export default function AdminPage() {
 
           <div className="admin-field">
             <Typography.Text type="secondary" className="dash-block--birth__hint">
+              人员类别（一键套用法定退休年龄）
+            </Typography.Text>
+            <Segmented
+              className="admin-category"
+              block
+              value={config.category}
+              onChange={(value) => handleCategoryChange(value as RetireeCategory)}
+              options={[
+                { label: "自定义", value: "custom" },
+                { label: "男职工 · 60", value: "male" },
+                { label: "女干部 · 55", value: "femaleStaff" },
+                { label: "女工人 · 50", value: "femaleWorker" }
+              ]}
+              style={{ marginTop: 8 }}
+            />
+          </div>
+
+          <div className="admin-field">
+            <Typography.Text type="secondary" className="dash-block--birth__hint">
               退休年龄（周岁）
             </Typography.Text>
             <InputNumber
@@ -186,7 +219,10 @@ export default function AdminPage() {
             className="stat-card retirement-highlight dash-panel dash-panel--cartoon"
             bordered={false}
           >
-            <div className="dash-panel__label">目标时刻 · 满 {config.retirementAge} 周岁</div>
+            <div className="dash-panel__label">
+              目标时刻 · 满 {config.retirementAge} 周岁
+              {config.category === "custom" ? "" : ` · ${RETIREE_CATEGORY_LABEL[config.category]}`}
+            </div>
             <Typography.Title
               className="dash-panel__value"
               level={3}

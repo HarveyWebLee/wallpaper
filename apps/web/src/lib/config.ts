@@ -24,15 +24,38 @@ export type CarouselConfig = {
   showCountdown: boolean;
 };
 
+/**
+ * 人员类别：用于一键套用常见法定退休年龄预设。
+ * `custom` 表示用户自定义，不套用任何预设（直接以 retirementAge 为准）。
+ */
+export type RetireeCategory = "custom" | "male" | "femaleStaff" | "femaleWorker";
+
 export type RetirementConfig = {
   /** 出生日期与时间，ISO 字符串；为 null 表示尚未设置 */
   birthday: string | null;
   /** 退休年龄（周岁） */
   retirementAge: number;
+  /** 人员类别；选择预设会同步设置 retirementAge，手动改年龄则回落为 custom */
+  category: RetireeCategory;
   /** 屏保背景图片（有序，用于轮播） */
   images: ScreensaverImage[];
   /** 轮播设置 */
   carousel: CarouselConfig;
+};
+
+/** 常见法定退休年龄预设（周岁）：男职工 60 / 女干部 55 / 女工人 50 */
+export const RETIREE_CATEGORY_AGE: Record<Exclude<RetireeCategory, "custom">, number> = {
+  male: 60,
+  femaleStaff: 55,
+  femaleWorker: 50
+};
+
+/** 人员类别的中文标签 */
+export const RETIREE_CATEGORY_LABEL: Record<RetireeCategory, string> = {
+  custom: "自定义",
+  male: "男职工",
+  femaleStaff: "女干部",
+  femaleWorker: "女工人"
 };
 
 export const RETIREMENT_AGE_MIN = 30;
@@ -56,6 +79,7 @@ export const DEFAULT_CAROUSEL: CarouselConfig = {
 export const DEFAULT_CONFIG: RetirementConfig = {
   birthday: DEFAULT_BIRTHDAY_ISO,
   retirementAge: 60,
+  category: "custom",
   images: [],
   carousel: { ...DEFAULT_CAROUSEL }
 };
@@ -72,6 +96,7 @@ function cloneDefault(): RetirementConfig {
   return {
     birthday: DEFAULT_CONFIG.birthday,
     retirementAge: DEFAULT_CONFIG.retirementAge,
+    category: DEFAULT_CONFIG.category,
     images: [],
     carousel: { ...DEFAULT_CAROUSEL }
   };
@@ -81,6 +106,10 @@ function clampAge(value: unknown): number {
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n)) return DEFAULT_CONFIG.retirementAge;
   return Math.min(RETIREMENT_AGE_MAX, Math.max(RETIREMENT_AGE_MIN, Math.round(n)));
+}
+
+function normalizeCategory(value: unknown): RetireeCategory {
+  return value === "male" || value === "femaleStaff" || value === "femaleWorker" ? value : "custom";
 }
 
 function normalizeBirthday(value: unknown): string | null {
@@ -146,6 +175,7 @@ export function normalizeConfig(raw: unknown): RetirementConfig {
     birthday: "birthday" in source ? normalizeBirthday(source.birthday) : DEFAULT_CONFIG.birthday,
     retirementAge:
       "retirementAge" in source ? clampAge(source.retirementAge) : DEFAULT_CONFIG.retirementAge,
+    category: "category" in source ? normalizeCategory(source.category) : DEFAULT_CONFIG.category,
     images: normalizeImages(source.images),
     carousel: normalizeCarousel(source.carousel)
   };
